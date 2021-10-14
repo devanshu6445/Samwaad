@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@id/chat">
+
+    <fragment
+        android:id="@+id/chat"
+        android:name="com.india.chat.samwaad.ui.home.HomeFragment"
+        android:label="@string/chat"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/status"
+        android:name="com.india.chat.samwaad.ui.dashboard.DashboardFragment"
+        android:label="@string/status"
+        tools:layout="@layout/fragment_dashboard" />
+
+    <fragment
+        android:id="@+id/search"
+        android:name="com.india.chat.samwaad.ui.notifications.NotificationsFragment"
+        android:label="@string/search"
+        tools:layout="@layout/fragment_notifications" />
+
+    <fragment
+        android:id="@+id/user_profile"
+        android:name="com.india.chat.samwaad.ui.UserProfile"
+        android:label="@string/user_profile"
+        tools:layout="@layout/user_profile"/>
+</navigation>

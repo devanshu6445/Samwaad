@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "183995860706",
+    "firebase_url": "https://samwaad-dd055.firebaseio.com",
+    "project_id": "samwaad-dd055",
+    "storage_bucket": "samwaad-dd055.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:183995860706:android:9461ff3e897b156f8f80bb",
+        "android_client_info": {
+          "package_name": "com.india.chat.samwaad"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "183995860706-hnaasfogpke03keo4o86gse1acgj2goq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.india.chat.samwaad",
+            "certificate_hash": "372be4bb965d311cafafac27c84e5606734479a2"
+          }
+        },
+        {
+          "client_id": "183995860706-14chg2nd02arco2afrg3lc7blg4q7jsk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBBFhS54APFgnHvLwmnJz1kN0WTRDL-QZg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "183995860706-14chg2nd02arco2afrg3lc7blg4q7jsk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

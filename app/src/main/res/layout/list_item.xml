@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:andoid="http://schemas.android.com/apk/res/android"
+    andoid:layout_height="wrap_content"
+    andoid:layout_width="match_parent"
+    andoid:orientation="horizontal">
+
+    <TextView
+        andoid:id="@+id/textView"
+        andoid:layout_width="365dp"
+        andoid:layout_height="match_parent"
+        andoid:textSize="16sp"
+        andoid:textStyle="bold" />
+
+    <ImageView
+        andoid:layout_width="44dp"
+        andoid:layout_height="match_parent"
+        andoid:visibility="visible"
+        andoid:src="@drawable/ic_login_button" />
+
+</LinearLayout>

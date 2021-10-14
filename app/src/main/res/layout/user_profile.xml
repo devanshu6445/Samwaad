@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/contentBodyColor"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:context="com.india.chat.samwaad.ui.UserProfile">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="30dp">
+
+            <TextView
+                style="@style/viewParent.headerText"
+                android:text="Profile" />
+
+            <RelativeLayout
+                android:id="@+id/personalDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/profileCircleImageView"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginEnd="10dp"
+                    android:src="@drawable/ic_user"
+                    app:civ_border_color="@color/imageBorderColor"
+                    app:civ_border_width="2dp" />
+
+                <TextView
+                    android:id="@+id/usernameTextView"
+                    style="@style/viewParent.headerText"
+                    android:layout_marginTop="20dp"
+                    android:layout_toEndOf="@id/profileCircleImageView"
+                    android:textSize="18sp" />
+
+                <ImageView
+                    style="@style/viewParent"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:contentDescription="false"
+                    android:src="@drawable/ic_more" />
+
+            </RelativeLayout>
+
+            <Switch
+                android:id="@+id/darkModeSwitch"
+                style="@style/settingsText"
+                android:drawableStart="@drawable/ic_dark_mode"
+                android:text="@string/dark_mode"
+                tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+            <TextView
+                style="@style/viewParent.headerText.settingsMiniTitle"
+                android:text="@string/profile" />
+
+            <TextView
+                android:id="@+id/editProfile"
+                style="@style/viewParent.headerText.settingsTextIcon"
+                android:text="@string/edit_profile"
+                app:drawableLeftCompat="@drawable/ic_edit_profile" />
+
+            <TextView
+                android:id="@+id/changePassword"
+                style="@style/viewParent.headerText.settingsTextIcon"
+                android:layout_marginTop="10dp"
+                android:text="@string/change_password"
+                app:drawableLeftCompat="@drawable/ic_edit_password" />
+
+            <TextView
+                style="@style/viewParent.headerText.settingsMiniTitle"
+                android:text="@string/notifications" />
+
+            <Switch
+                style="@style/settingsText"
+                android:drawableStart="@drawable/ic_notifications"
+                android:text="@string/notifications"
+                tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+            <TextView
+                style="@style/viewParent.headerText.settingsMiniTitle"
+                android:text="Accout &amp; Support" />
+
+            <TextView
+                style="@style/viewParent.headerText.settingsTextIcon"
+                android:text="Language"
+                app:drawableLeftCompat="@drawable/ic_languages" />
+
+            <TextView
+                android:id="@+id/accountSetting"
+                style="@style/viewParent.headerText.settingsTextIcon"
+                android:text="@string/account_settings"
+                app:drawableLeftCompat="@drawable/ic_settings" />
+
+            <TextView
+                style="@style/viewParent.headerText.settingsTextIcon"
+                android:text="@string/report_a_problem"
+                app:drawableLeftCompat="@drawable/ic_problem" />
+
+            <TextView
+                android:id="@+id/signout"
+                style="@style/viewParent.headerText.settingsTextIcon"
+                android:text="@string/logout"
+                app:drawableLeftCompat="@drawable/ic_logout" />
+
+            <TextView
+                style="@style/viewParent.headerText.settingsMiniTitle"
+                android:text="App ver 1.0.0"
+                android:textAlignment="center" />
+
+            <TextView
+                style="@style/viewParent.headerText"
+                android:text="Edit personal details"
+                android:textColor="#5D5C5C"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+    </ScrollView>
+    <include android:id="@+id/progress_Bar2" android:layout_width="match_parent" android:layout_height="match_parent" layout="@layout/progress_bar"/>
+</androidx.constraintlayout.widget.ConstraintLayout>
