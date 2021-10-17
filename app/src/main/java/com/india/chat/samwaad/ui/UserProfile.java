@@ -52,12 +52,10 @@ public class UserProfile extends Fragment {
         signout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ViewProgressBar.setVisibility(View.VISIBLE);
                 FirebaseAuth user = FirebaseAuth.getInstance();
                 status("offline");
-                user.signOut();
-                ViewProgressBar.setVisibility(View.GONE);
                 Intent intent = new Intent(getActivity(), login_to_samwaad.class);
+                user.signOut();
                 startActivity(intent);
 
             }

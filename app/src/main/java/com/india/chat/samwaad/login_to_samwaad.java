@@ -86,6 +86,8 @@ public class login_to_samwaad extends AppCompatActivity {
                     view1.setVisibility(View.VISIBLE);
                     Log.d("No Error", "Working");
                     FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+                    Globalh globalh = new Globalh();
+
                     firebaseAuth.signInWithEmailAndPassword(email,pwd)
                             .addOnCompleteListener(login_to_samwaad.this, new OnCompleteListener<AuthResult>() {
                         @Override

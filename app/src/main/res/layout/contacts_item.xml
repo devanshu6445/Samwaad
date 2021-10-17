@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="70dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:elevation="0dp"
+    android:background="@drawable/custom_ripple">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="5dp">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:id="@+id/img_cont"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/img_cont"
+            android:textSize="18sp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:textColor="#5D5D5D"
+            android:id="@+id/name_cont"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="Send Message"
+            android:layout_gravity="center_vertical"/>
+
+        <TextView
+            android:id="@+id/num_cont"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/name_cont"
+            android:layout_toEndOf="@id/img_cont"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"/>
+
+
+    </RelativeLayout>
+
+</RelativeLayout>
