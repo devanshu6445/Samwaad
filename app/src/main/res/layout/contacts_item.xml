@@ -21,18 +21,19 @@
             android:id="@+id/img_cont"/>
 
         <TextView
+            android:id="@+id/name_cont"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/img_cont"
-            android:textSize="18sp"
+            android:layout_gravity="center_vertical"
             android:layout_marginStart="5dp"
             android:layout_marginTop="5dp"
-            android:textColor="#5D5D5D"
-            android:id="@+id/name_cont"
+            android:textStyle="bold"
+            android:layout_toEndOf="@+id/img_cont"
             android:paddingStart="10dp"
             android:paddingEnd="10dp"
             android:text="Send Message"
-            android:layout_gravity="center_vertical"/>
+            android:textColor="#5D5D5D"
+            android:textSize="18sp" />
 
         <TextView
             android:id="@+id/num_cont"
@@ -41,6 +42,8 @@
             android:layout_below="@id/name_cont"
             android:layout_toEndOf="@id/img_cont"
             android:layout_marginStart="5dp"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
             android:layout_marginTop="5dp"/>
 
 

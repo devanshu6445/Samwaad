@@ -17,11 +17,21 @@
         android:padding="@dimen/loginViewsMargin">
 
         <TextView
+            android:id="@+id/regtv"
             style="@style/headerTextPrimary"
             android:fontFamily="@font/engagement"
+            android:textAlignment="center"
             android:text="@string/register"
             android:textSize="32sp"
             android:layout_marginTop="@dimen/loginViewsMargin"/>
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/user_regImage"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp"
+            android:visibility="visible"/>
 
         <com.google.android.material.textfield.TextInputLayout
             style="@style/parent"

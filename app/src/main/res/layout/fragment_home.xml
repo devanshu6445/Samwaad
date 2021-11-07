@@ -79,16 +79,7 @@
             android:clickable="true"
             android:focusable="true"
             android:layout_height="wrap_content"
-
             android:id="@+id/recycler_view"/>
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:layout_gravity="bottom|end"
-            android:id="@+id/fab_ct"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:clickable="true"
-            android:src="@drawable/back_to_home_button" />
 
     </LinearLayout>
 

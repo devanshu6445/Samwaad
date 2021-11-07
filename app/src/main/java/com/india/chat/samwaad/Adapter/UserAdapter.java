@@ -2,15 +2,19 @@ package com.india.chat.samwaad.Adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Build;
 import android.provider.ContactsContract;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -71,15 +75,25 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         final User user = mUsers.get(position);
 
         holder.username.setText(user.getUsername());
-        Glide.with(mContext).load(user.getImageURL()).into(holder.profile_image);
+        if (user.getImageURL()==null){
+            holder.profile_image.setImageResource(R.drawable.ic_person);
+        } else {
+            Glide.with(mContext).load(user.getImageURL()).into(holder.profile_image);
+        }
 
         showTime(user.getId(), holder.timestamp);
 
-        if (inchat) {
-            lastMessage(user.getId(), holder.last_msg);
+        if(user.getStatus().equals("Typing...")){
+            holder.timestamp.setVisibility(View.GONE);
+            holder.last_msg.setTextColor(Color.parseColor("#27C274"));
+            holder.last_msg.setText("typing...");
+        }else {
+            if (inchat) {
+                lastMessage(user.getId(), holder.last_msg,holder.username);
 
-        } else {
-            holder.last_msg.setVisibility(View.GONE);
+            } else {
+                holder.last_msg.setVisibility(View.GONE);
+            }
         }
 
         if (inchat){
@@ -136,7 +150,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             timestamp = itemView.findViewById(R.id.timestamp);
         }
     }
-    private  void lastMessage(final String userid, final TextView last_msg){
+    private  void lastMessage(final String userid, final TextView last_msg,final TextView name){
         theLastMessageFromYou = "default";
         theLastMessage = "default";
         final FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -150,9 +164,12 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                     if (chat.getReceiver().equals(firebaseUser.getUid()) && chat.getSender().equals(userid)){
                         theLastMessage = chat.getMessage();
                         if (chat.getMessage()==null){
+
                             if(chat.getImageUrl()== null){
+                                Log.d("NullImageURL","NULLIMAGEURL");
                                 last_msg.setVisibility(View.GONE);
                             } else if (chat.getImageUrl()!= null){
+                                Log.d("NonNullImageURL","NONNULLIMAGEURL");
                                 last_msg.setText("Sent an attachment");
                             }
                         }else {
@@ -175,6 +192,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
                         theLastMessageFromYou = chat.getMessage();
                         if (chat.getMessage()==null){
                             if(chat.getImageUrl()== null){
+                                Log.d("NullImageURL","NULLIMAGEURL");
                                 last_msg.setVisibility(View.GONE);
                             } else if (chat.getImageUrl()!= null){
                                 last_msg.setText("You: Sent an attachment");

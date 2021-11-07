@@ -7,34 +7,42 @@
 
     <RelativeLayout
         android:layout_width="300dp"
-        android:layout_alignParentEnd="true"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true">
 
         <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profile_image"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/profile_image"
-            android:visibility="gone"
-            android:src="@drawable/ic_person"/>
+            android:src="@drawable/ic_person"
+            android:visibility="gone" />
 
         <TextView
+            android:id="@+id/show_message_send"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/background_right"
-            android:text="hello"
-            android:fontFamily="@font/roboto_light"
-            android:id="@+id/show_message"
             android:layout_alignParentEnd="true"
-            android:textSize="18sp"
-            android:textColor="@color/whiteCardColor"
+            android:background="@drawable/background_right"
             android:elevation="0.5dp"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
+            android:fontFamily="@font/roboto_light"
             android:paddingStart="10dp"
-            android:paddingEnd="10dp"/>
+            android:paddingTop="5dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="5dp"
+            android:text="hello"
+            android:textColor="@color/whiteCardColor"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/text_seen_msg_send"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/show_message_send"
+            android:layout_alignParentEnd="true" />
+
 
         <RelativeLayout
-            android:id="@+id/RoundMessageImageView"
+            android:id="@+id/RoundMessageImageView_send"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
@@ -42,21 +50,21 @@
             android:elevation="0dp">
 
             <ImageView
+                android:id="@+id/MessageImageView_send"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="2dp"
-                android:padding="2dp"
-                android:id="@+id/MessageImageView"
                 android:adjustViewBounds="true"
-                android:scaleType="fitCenter"/>
+                android:padding="2dp"
+                android:scaleType="fitCenter" />
         </RelativeLayout>
 
         <TextView
+            android:id="@+id/text_seen_send"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/text_seen"
-            android:layout_below="@id/RoundMessageImageView"
-            android:layout_alignParentEnd="true"/>
+            android:layout_below="@id/RoundMessageImageView_send"
+            android:layout_alignParentEnd="true" />
 
     </RelativeLayout>
 

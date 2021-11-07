@@ -30,6 +30,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.firebase.auth.FirebaseAuth;
@@ -41,6 +42,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.gson.JsonObject;
 import com.india.chat.samwaad.Adapter.UserAdapter;
 import com.india.chat.samwaad.MainActivity;
@@ -69,6 +72,8 @@ public class HomeFragment extends Fragment {
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
     EditText search_users;
 
+    FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+
     private List<String> usersList;
 
 
@@ -79,14 +84,22 @@ public class HomeFragment extends Fragment {
         AppBarLayout app_lay = root.findViewById(R.id.app_lay);
         app_lay.setOutlineProvider(null);
         img_profile_home = root.findViewById(R.id.img_profile_home);
+        firestore.collection("users").document(user.getUid())
+                .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot documentSnapshot) {
+                if (documentSnapshot.exists()){
+                    if (documentSnapshot.get("ImageURL")!=null){
+                        Glide.with(img_profile_home.getContext())
+                                .load(documentSnapshot.get("ImageURL"))
+                                .into(img_profile_home);
+                    } else{
+                        img_profile_home.setImageResource(R.drawable.ic_person);
+                    }
+                }
+            }
+        });
 
-        if (user.getPhotoUrl()!= null){
-            Glide.with(img_profile_home.getContext())
-                    .load(FirebaseAuth.getInstance().getCurrentUser().getPhotoUrl())
-                    .into(img_profile_home);
-        } else{
-            img_profile_home.setImageResource(R.drawable.ic_person);
-        }
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users");
         ref.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
             @Override
@@ -158,31 +171,35 @@ public class HomeFragment extends Fragment {
 
 
     private void searchUsers(String toString) {
-        final FirebaseUser fuser = FirebaseAuth.getInstance().getCurrentUser();
-        Query query = FirebaseDatabase.getInstance().getReference("users").orderByChild("search")
-                .startAt(toString)
-                .endAt(toString+"\uf8ff");
-        query.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                mUsers.clear();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()){
-                    User user = snapshot.getValue(User.class);
-                    assert user != null;
-                    if (!user.getId().equals(fuser.getUid())){
-                        mUsers.add(user);
+        if (toString.equals("")) {
+            readUsers();
+        } else{
+            final FirebaseUser fuser = FirebaseAuth.getInstance().getCurrentUser();
+            Query query = FirebaseDatabase.getInstance().getReference("users").orderByChild("search")
+                    .startAt(toString)
+                    .endAt(toString + "\uf8ff");
+            query.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    mUsers.clear();
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        User user = snapshot.getValue(User.class);
+                        assert user != null;
+                        if (!user.getId().equals(fuser.getUid())) {
+                            mUsers.add(user);
+                        }
                     }
+
+                    userAdapter = new UserAdapter(getContext(), mUsers, true);
+                    recyclerView.setAdapter(userAdapter);
                 }
 
-                userAdapter = new UserAdapter(getContext(), mUsers, true);
-                recyclerView.setAdapter(userAdapter);
-            }
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
+                }
+            });
+        }
     }
 
 

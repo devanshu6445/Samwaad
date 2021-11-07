@@ -1,6 +1,7 @@
 package com.india.chat.samwaad;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -8,6 +9,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,14 +30,22 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.india.chat.samwaad.Model.User;
-
+import com.india.chat.samwaad.chat.MessageActivity;
 
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class UserRegistration extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
 
@@ -47,7 +57,10 @@ public class UserRegistration extends AppCompatActivity implements AdapterView.O
     Button user_register;
     EditText user_password;
     FirebaseAuth firebaseAuth;
-
+    ImageView user_regImage;
+    private static  final int REQUEST_IMAGE = 2;
+    Uri uriRegImage;
+    TextView regtv;
 
 
     @Override
@@ -61,9 +74,21 @@ public class UserRegistration extends AppCompatActivity implements AdapterView.O
         user_mobile_number = findViewById(R.id.user_registration_mobile_number1);
         user_register = findViewById(R.id.user_registration_processor1);
         user_password = findViewById(R.id.user_registration_password1);
+        user_regImage = findViewById(R.id.user_regImage);
+        regtv = findViewById(R.id.regtv);
+
 
 
         Objects.requireNonNull(getSupportActionBar()).hide();
+        regtv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("image/*");
+                startActivityForResult(intent, REQUEST_IMAGE);
+            }
+        });
         user_register.setOnClickListener(v -> {
 
             firebaseAuth = FirebaseAuth.getInstance();
@@ -96,17 +121,11 @@ public class UserRegistration extends AppCompatActivity implements AdapterView.O
                 firebaseAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
                     if (task.isSuccessful()){
                         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                        FirebaseFirestore user_db = FirebaseFirestore.getInstance();
-                        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("users");
-                        assert user != null;
-                        User information = new User(user.getUid(), name, null, "online");
-                        user_db.collection("users").document(user.getUid())
-                                .set(information)
-                                .addOnSuccessListener(unused -> Log.d("firestore_db_success","Success")).addOnFailureListener(e -> Log.d("firestore_db_fail", "failed", e));
-                        databaseReference.child(user.getUid()).setValue(information);
-                        Intent intent = new Intent(UserRegistration.this, MainActivity.class);
-                        startActivity(intent);
-                        Toast.makeText(UserRegistration.this, "Registration done correctly", Toast.LENGTH_LONG).show();
+                        if (user!=null){
+                            StorageReference reference = FirebaseStorage.getInstance().getReference().child(user.getUid())
+                                    .child(uriRegImage.getLastPathSegment());
+                            putRegImage(reference,uriRegImage,user,name);
+                        }
                     } else {
                         Toast.makeText(UserRegistration.this, "An unknown error has occured", Toast.LENGTH_LONG).show();
                     }
@@ -135,5 +154,63 @@ public class UserRegistration extends AppCompatActivity implements AdapterView.O
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_IMAGE){
+            if (resultCode == RESULT_OK){
+                if (data!=null){
+                    uriRegImage = data.getData();
+                    Log.d("URIREG",uriRegImage.toString());
+                }
+            }
+        }
+    }
+    String imageURL;
+    private void putRegImage(StorageReference storageReference, Uri uri,FirebaseUser user,String name){
+
+        storageReference.putFile(uri).addOnCompleteListener(UserRegistration.this,
+                new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            if (task.getResult()!=null){
+                                task.getResult().getMetadata().getReference().getDownloadUrl()
+                                        .addOnCompleteListener(UserRegistration.this,
+                                                new OnCompleteListener<Uri>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<Uri> task) {
+                                                        if (task.isSuccessful()) {
+                                                            imageURL = task.getResult().toString();
+                                                            Log.d("ImageUrrl",imageURL,task.getException());
+                                                            FirebaseFirestore user_db = FirebaseFirestore.getInstance();
+                                                            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("users");
+                                                            User information1;
+                                                            if (imageURL == null){
+                                                                information1 = new User(user.getUid(), name, null, "online",name.toLowerCase());
+                                                            } else {
+                                                                information1 = new User(user.getUid(), name, imageURL, "online",name.toLowerCase());
+                                                            }
+                                                            user_db.collection("users").document(user.getUid())
+                                                                    .set(information1)
+                                                                    .addOnSuccessListener(unused -> Log.d("firestore_db_success","Success")).addOnFailureListener(e -> Log.d("firestore_db_fail", "failed", e));
+                                                            databaseReference.child(user.getUid()).setValue(information1);
+
+
+                                                            Intent intent = new Intent(UserRegistration.this, MainActivity.class);
+                                                            startActivity(intent);
+                                                            Toast.makeText(UserRegistration.this, "Registration done correctly", Toast.LENGTH_LONG).show();
+                                                        }
+                                                    }
+                                                });
+                            }
+                        } else {
+                            Log.w("ImageUpload", "Image upload task was not successful.",
+                                    task.getException());
+                        }
+                    }
+                });
     }
 }

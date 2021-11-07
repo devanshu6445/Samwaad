@@ -14,10 +14,14 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.india.chat.samwaad.EditPersonalDetails;
 import com.india.chat.samwaad.R;
 import com.india.chat.samwaad.login_to_samwaad;
@@ -29,8 +33,9 @@ import java.util.HashMap;
 public class UserProfile extends Fragment {
 
     ImageView imageView;
-    FirebaseUser fuser;
-    DatabaseReference reference;
+    FirebaseUser fuser = FirebaseAuth.getInstance().getCurrentUser();
+    FirebaseFirestore firebaseFirestore;
+    TextView name_tv;
 
     @Nullable
     @Override
@@ -42,6 +47,23 @@ public class UserProfile extends Fragment {
         TextView editProfile = root.findViewById(R.id.editProfile);
         TextView signout = root.findViewById(R.id.signout);
         TextView changePassword = root.findViewById(R.id.changePassword);
+        name_tv = root.findViewById(R.id.usernameTextVie);
+        firebaseFirestore = FirebaseFirestore.getInstance();
+        firebaseFirestore.collection("users").document(fuser.getUid())
+                .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()){
+                            DocumentSnapshot documentSnapshot =task.getResult();
+                            if (documentSnapshot.get("ImageURL")!=null){
+                                Glide.with(imageView.getContext()).load(documentSnapshot.get("ImageURL")).into(imageView);
+                                name_tv.setText(documentSnapshot.get("name").toString());
+                            }
+                        }
+                    }
+                });
+
+
         changePassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -52,8 +74,8 @@ public class UserProfile extends Fragment {
         signout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FirebaseAuth user = FirebaseAuth.getInstance();
                 status("offline");
+                FirebaseAuth user = FirebaseAuth.getInstance();
                 Intent intent = new Intent(getActivity(), login_to_samwaad.class);
                 user.signOut();
                 startActivity(intent);
@@ -67,28 +89,20 @@ public class UserProfile extends Fragment {
                 startActivity(intent);
             }
         });
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        assert user!=null;
-        Uri photoUrl = user.getPhotoUrl();
-        if(photoUrl != null){
-            Glide.with(this)
-                    .load(photoUrl)
-                    .into(imageView);
-        } else {
-            imageView.setImageResource(R.drawable.ic_user);
-        }
-        TextView tempname = root.findViewById(R.id.usernameTextView);
-        String profileName = user.getDisplayName();
-        tempname.setText(profileName);
         return root;
 
     }
+    DatabaseReference reference;
     private void status(String status){
         fuser = FirebaseAuth.getInstance().getCurrentUser();
-        reference = FirebaseDatabase.getInstance().getReference("users").child(fuser.getUid());
-        HashMap<String, Object> hashMap = new HashMap<>();
-        hashMap.put("status", status);
-
-        reference.updateChildren(hashMap);
+        if (fuser!=null){
+            reference = FirebaseDatabase.getInstance().getReference("users").child(fuser.getUid());
+            FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
+            HashMap<String, Object> hashMap = new HashMap<>();
+            hashMap.put("status", status);
+            firebaseFirestore.collection("users").document(fuser.getUid())
+                    .update(hashMap);
+            reference.updateChildren(hashMap);
+        }
     }
 }

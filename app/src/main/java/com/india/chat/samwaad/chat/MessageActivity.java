@@ -8,15 +8,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
-import android.graphics.Color;
+
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
+import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.View;
+
 import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -38,13 +40,13 @@ import com.google.firebase.database.ValueEventListener;
 
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
+
 import com.india.chat.samwaad.Adapter.MessageAdapter;
 import com.india.chat.samwaad.MainActivity;
 import com.india.chat.samwaad.Model.Chat;
 import com.india.chat.samwaad.Model.User;
 
-import com.india.chat.samwaad.Notifications.Data;
+
 import com.india.chat.samwaad.R;
 
 
@@ -54,7 +56,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.UUID;
+
 
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -66,7 +68,7 @@ public class MessageActivity extends AppCompatActivity {
     TextView username;
 
     FirebaseUser fuser;
-    DatabaseReference reference;
+    DatabaseReference reference,databaseReference;
 
     ImageButton btn_send;
     EditText text_send;
@@ -83,7 +85,7 @@ public class MessageActivity extends AppCompatActivity {
 
     private static  final int REQUEST_IMAGE = 2;
 
-    ValueEventListener seenListener;
+    ValueEventListener seenListener,SeenListener1;
 
 
     @Override
@@ -95,12 +97,9 @@ public class MessageActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle("");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(MessageActivity.this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-            }
-        });
+        toolbar.setNavigationOnClickListener(v ->
+                startActivity(new Intent(MessageActivity.this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
+        );
         Window window = getWindow();
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
             window.setStatusBarColor(getResources().getColor(R.color.emerald));
@@ -110,6 +109,7 @@ public class MessageActivity extends AppCompatActivity {
         final String userid = intent.getStringExtra("user_id");
         recyclerView = findViewById(R.id.recycler_view1);
         recyclerView.setHasFixedSize(true);
+        recyclerView.setNestedScrollingEnabled(false);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         linearLayoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(linearLayoutManager);
@@ -120,14 +120,11 @@ public class MessageActivity extends AppCompatActivity {
         status_dynamic = findViewById(R.id.status_dynamic);
         btn_cam = findViewById(R.id.btn_cam);
 
-        btn_cam.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("image/*");
-                startActivityForResult(intent, REQUEST_IMAGE);
-            }
+        btn_cam.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("image/*");
+            startActivityForResult(intent, REQUEST_IMAGE);
         });
 
         text_send.addTextChangedListener(new TextWatcher() {
@@ -141,18 +138,19 @@ public class MessageActivity extends AppCompatActivity {
                 status("Typing...");
             }
             private Timer timer = new Timer();
-            private final long DELAY = 1000;
+
             @Override
             public void afterTextChanged(Editable s) {
                 timer.cancel();
                 timer = new Timer();
+                long DELAY = 1000;
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
                         status("online");
                     }
                 },
-                DELAY);
+                        DELAY);
             }
         });
 
@@ -169,7 +167,7 @@ public class MessageActivity extends AppCompatActivity {
                 assert user != null;
                 username.setText(user.getUsername());
                 Glide.with(getApplicationContext()).load(user.getImageURL()).into(profile_image);
-                readMessages(fuser.getUid(), userid, user.getImageURL());
+                readMessages(fuser.getUid(), userid);
                 status_dynamic.setText(user.getStatus());
             }
 
@@ -178,16 +176,13 @@ public class MessageActivity extends AppCompatActivity {
 
             }
         });
-        btn_send.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String msg = text_send.getText().toString();
-                if (!msg.isEmpty()){
-                    sendMessage(fuser.getUid(), userid, msg);
-                    text_send.setText("");
-                } else {
-                    Toast.makeText(MessageActivity.this, "You can't send empty message", Toast.LENGTH_SHORT).show();
-                }
+        btn_send.setOnClickListener(v -> {
+            String msg = text_send.getText().toString();
+            if (!msg.isEmpty()){
+                sendMessage(fuser.getUid(), userid, msg);
+                text_send.setText("");
+            } else {
+                Toast.makeText(MessageActivity.this, "You can't send empty message", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -198,8 +193,29 @@ public class MessageActivity extends AppCompatActivity {
     private void seenMessage(final String userid){
         String myid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         reference = FirebaseDatabase.getInstance().getReference("Chats").child(myid+"_"+userid);
-
+        databaseReference = FirebaseDatabase.getInstance().getReference("Chats").child(userid+"_"+myid);
         seenListener = reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for ( DataSnapshot snapshot : dataSnapshot.getChildren()){
+                    Chat chat = snapshot.getValue(Chat.class);
+                    assert chat != null;
+                    if (chat.getReceiver().equals(fuser.getUid()) && chat.getSender().equals(userid)){
+                        HashMap<String, Object> hashMap = new HashMap<>();
+                        hashMap.put("isseen", true);
+                        snapshot.getRef().updateChildren(hashMap);
+
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+
+        SeenListener1 = databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for ( DataSnapshot snapshot : dataSnapshot.getChildren()){
@@ -238,44 +254,51 @@ public class MessageActivity extends AppCompatActivity {
     }
 
     private void putImageInStorage(StorageReference storageReference, Uri uri) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString("upload_status","uploading");
+        editor.apply();
+        fuser = FirebaseAuth.getInstance().getCurrentUser();
+        intent = getIntent();
+        final String userid = intent.getStringExtra("user_id");
         storageReference.putFile(uri).addOnCompleteListener(MessageActivity.this,
-                new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            task.getResult().getMetadata().getReference().getDownloadUrl()
-                                    .addOnCompleteListener(MessageActivity.this,
-                                            new OnCompleteListener<Uri>() {
-                                                @Override
-                                                public void onComplete(@NonNull Task<Uri> task) {
-                                                    if (task.isSuccessful()) {
-                                                        intent = getIntent();
-                                                        final String receiver = intent.getStringExtra("user_id");
-                                                        String sender = fuser.getUid();
+                task -> {
+                    if (task.isSuccessful()) {
+                        task.getResult().getMetadata().getReference().getDownloadUrl()
+                                .addOnCompleteListener(MessageActivity.this,
+                                        new OnCompleteListener<Uri>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Uri> task) {
+                                                if (task.isSuccessful()) {
+                                                    assert task.getResult() != null;
+                                                    intent = getIntent();
+                                                    final String receiver = intent.getStringExtra("user_id");
+                                                    String sender = fuser.getUid();
 
-                                                        Date date = new Date();
-                                                        String ts = Long.toString(date.getTime());
-                                                        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
-                                                        HashMap<String, Object> hashMap = new HashMap<>();
-                                                        hashMap.put("sender", sender);
-                                                        hashMap.put("receiver", receiver);
-                                                        hashMap.put("message", null);
-                                                        hashMap.put("timestamp", ServerValue.TIMESTAMP);
-                                                        hashMap.put("unique_id", ts);
-                                                        hashMap.put("imageUrl", task.getResult().toString());
-                                                        hashMap.put("isseen", false);
+                                                    Date date = new Date();
+                                                    String ts = Long.toString(date.getTime());
+                                                    DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+                                                    HashMap<String, Object> hashMap = new HashMap<>();
+                                                    hashMap.put("sender", sender);
+                                                    hashMap.put("receiver", receiver);
+                                                    hashMap.put("message", null);
+                                                    hashMap.put("timestamp", ServerValue.TIMESTAMP);
+                                                    hashMap.put("unique_id", ts);
+                                                    hashMap.put("imageUrl", task.getResult().toString());
+                                                    hashMap.put("isseen", false);
 
-                                                        Log.d("ImageURL", task.getResult().toString(), task.getException());
+                                                    Log.d("ImageURL", task.getResult().toString(), task.getException());
 
-                                                        reference.child("Chats").child(sender+"_"+receiver).child(ts).setValue(hashMap);
-                                                        reference.child("Chats").child(receiver+"_"+sender).child(ts).setValue(hashMap);
-                                                    }
+                                                    reference.child("Chats").child(sender+"_"+receiver).child(ts).setValue(hashMap);
+                                                    reference.child("Chats").child(receiver+"_"+sender).child(ts).setValue(hashMap);
+                                                    editor.putString("upload_status","uploaded");
+                                                    editor.apply();
                                                 }
-                                            });
-                        } else {
-                            Log.w("ImageUpload", "Image upload task was not successful.",
-                                    task.getException());
-                        }
+                                            }
+                                        });
+                    } else {
+                        Log.w("ImageUpload", "Image upload task was not successful.",
+                                task.getException());
                     }
                 });
     }
@@ -296,26 +319,9 @@ public class MessageActivity extends AppCompatActivity {
         reference.child("Chats").child(sender+"_"+receiver).child(ts).setValue(hashMap);
         reference.child("Chats").child(receiver+"_"+sender).child(ts).setValue(hashMap);
 
-
-        //Start - Trash Code
-        DatabaseReference database = FirebaseDatabase.getInstance().getReference("users").child(fuser.getUid());
-        database.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                User user = snapshot.getValue(User.class);
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-        //End - Trash Code
-
     }
 
-    private void readMessages(final String myid, final String userid, final String imageurl){
+    private void readMessages(final String myid, final String userid){
         mChat = new ArrayList<>();
         reference = FirebaseDatabase.getInstance().getReference("Chats").child(myid+"_"+userid);
 
@@ -325,12 +331,20 @@ public class MessageActivity extends AppCompatActivity {
                 mChat.clear();
                 for(DataSnapshot snapshot : dataSnapshot.getChildren()){
                     Chat chat = snapshot.getValue(Chat.class);
+                    assert chat != null;
                     if(chat.getReceiver().equals(myid) && chat.getSender().equals(userid) ||
                             chat.getReceiver().equals(userid) && chat.getSender().equals(myid)){
                         mChat.add(chat);
                     }
 
-                    messageAdapter = new MessageAdapter(MessageActivity.this, mChat, imageurl);
+                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                    String pref = preferences.getString("upload_status","Nothing");
+
+                    if (chat.getImageUrl()==null){
+                        messageAdapter = new MessageAdapter(MessageActivity.this, mChat);
+                    } else if (chat.getImageUrl()!=null){
+                        messageAdapter = new MessageAdapter(MessageActivity.this, mChat,pref);
+                    }
                     recyclerView.setAdapter(messageAdapter);
                 }
             }
@@ -360,6 +374,7 @@ public class MessageActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         reference.removeEventListener(seenListener);
+        databaseReference.removeEventListener(SeenListener1);
         status("offline");
     }
 

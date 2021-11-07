@@ -4,19 +4,15 @@
     android:layout_width="300dp"
     android:padding="3dp"
     android:layout_height="wrap_content">
-
     <de.hdodenhof.circleimageview.CircleImageView
-        android:layout_width="35dp"
-        android:layout_height="35dp"
-        android:paddingTop="5dp"
-        android:paddingStart="10dp"
-        android:paddingEnd="3dp"
-        android:elevation="0.5dp"
         android:id="@+id/profile_image"
-        android:src="@drawable/ic_person"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_person"
+        android:visibility="gone" />
 
     <TextView
-        android:id="@+id/show_message"
+        android:id="@+id/show_message_receive"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="5dp"
@@ -31,9 +27,15 @@
         android:text="hello"
         android:textColor="#FFFFFF"
         android:textSize="18sp" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/text_seen_msg_receive"
+        android:layout_below="@id/show_message_receive"
+        android:layout_alignParentStart="true"/>
 
     <RelativeLayout
-        android:id="@+id/RoundMessageImageView"
+        android:id="@+id/RoundMessageImageView_receive"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
@@ -45,7 +47,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="2dp"
             android:padding="2dp"
-            android:id="@+id/MessageImageView"
+            android:id="@+id/MessageImageView_receive"
             android:adjustViewBounds="true"
             android:scaleType="fitCenter"/>
     </RelativeLayout>
@@ -53,9 +55,9 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/text_seen"
+        android:id="@+id/text_seen_receive"
         android:visibility="gone"
-        android:layout_below="@id/RoundMessageImageView"
+        android:layout_below="@id/RoundMessageImageView_receive"
         android:layout_alignParentStart="true"/>
 
 </RelativeLayout>

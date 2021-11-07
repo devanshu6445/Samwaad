@@ -36,15 +36,15 @@
                     android:layout_width="60dp"
                     android:layout_height="60dp"
                     android:layout_marginTop="15dp"
+                    android:layout_centerVertical="true"
                     android:layout_marginEnd="10dp"
-                    android:src="@drawable/ic_user"
-                    app:civ_border_color="@color/imageBorderColor"
-                    app:civ_border_width="2dp" />
+                    android:src="@drawable/ic_user" />
 
                 <TextView
-                    android:id="@+id/usernameTextView"
+                    android:id="@+id/usernameTextVie"
                     style="@style/viewParent.headerText"
-                    android:layout_marginTop="20dp"
+
+                    android:layout_centerVertical="true"
                     android:layout_toEndOf="@id/profileCircleImageView"
                     android:textSize="18sp" />
 

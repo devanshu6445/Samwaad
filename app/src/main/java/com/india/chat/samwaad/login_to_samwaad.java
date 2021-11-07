@@ -86,34 +86,30 @@ public class login_to_samwaad extends AppCompatActivity {
                     view1.setVisibility(View.VISIBLE);
                     Log.d("No Error", "Working");
                     FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-                    Globalh globalh = new Globalh();
 
                     firebaseAuth.signInWithEmailAndPassword(email,pwd)
-                            .addOnCompleteListener(login_to_samwaad.this, new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                view1.setVisibility(View.GONE);
-                                Log.d("Working", "Working");
-                                Toast.makeText(login_to_samwaad.this, "Done", Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(login_to_samwaad.this, MainActivity.class));
-                            } else {
+                            .addOnCompleteListener(login_to_samwaad.this, task -> {
+                                if (task.isSuccessful()) {
+                                    view1.setVisibility(View.GONE);
+                                    Log.d("Working", "Working");
+                                    Toast.makeText(login_to_samwaad.this, "Done", Toast.LENGTH_SHORT).show();
+                                    startActivity(new Intent(login_to_samwaad.this, MainActivity.class));
+                                } else {
 
-                                AlertDialog.Builder alert = new AlertDialog.Builder(login_to_samwaad.this).
-                                        setMessage("Please enter correct details")
-                                        .setTitle("Invalid Details").setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                dialog.cancel();
-                                            }
-                                        });
-                                AlertDialog alertDialog = alert.create();
-                                alertDialog.show();
-                                view1.setVisibility(View.GONE);
-                                Log.d("Login Failed", "Login Failed");
-                            }
-                        }
-                    });
+                                    AlertDialog.Builder alert = new AlertDialog.Builder(login_to_samwaad.this).
+                                            setMessage("Please enter correct details")
+                                            .setTitle("Invalid Details").setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    dialog.cancel();
+                                                }
+                                            });
+                                    AlertDialog alertDialog = alert.create();
+                                    alertDialog.show();
+                                    view1.setVisibility(View.GONE);
+                                    Log.d("Login Failed", "Login Failed");
+                                }
+                            });
                 }
             }
         });
