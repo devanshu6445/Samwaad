@@ -40,6 +40,7 @@ public class login_to_samwaad extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
         setContentView(R.layout.login_to_samwaad);
         Objects.requireNonNull(getSupportActionBar()).hide();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         toolbar = findViewById(R.id.toolbar);
         final View view1 = findViewById(R.id.llProgressBar);
         view1.setVisibility(View.GONE);

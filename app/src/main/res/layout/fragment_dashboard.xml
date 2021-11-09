@@ -9,14 +9,15 @@
     android:orientation="vertical"
     tools:context=".ui.dashboard.DashboardFragment">
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:id="@+id/ts_search"/>
-
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view_story"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/ts_rv_search"/>
+        android:layout_height="200dp"/>
+
+    <Button
+        android:id="@+id/addStory"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/back_to_home_button"/>
 
 </LinearLayout>

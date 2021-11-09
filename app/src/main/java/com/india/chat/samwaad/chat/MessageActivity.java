@@ -141,16 +141,15 @@ public class MessageActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                timer.cancel();
+
                 timer = new Timer();
-                long DELAY = 1000;
+                long DELAY = 2000;
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
                         status("online");
                     }
-                },
-                        DELAY);
+                },DELAY);
             }
         });
 
@@ -159,23 +158,7 @@ public class MessageActivity extends AppCompatActivity {
         fuser = FirebaseAuth.getInstance().getCurrentUser();
         assert userid != null;
         reference = FirebaseDatabase.getInstance().getReference("users").child(userid);
-
-        reference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                User user = snapshot.getValue(User.class);
-                assert user != null;
-                username.setText(user.getUsername());
-                Glide.with(getApplicationContext()).load(user.getImageURL()).into(profile_image);
-                readMessages(fuser.getUid(), userid);
-                status_dynamic.setText(user.getStatus());
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
+        readMessages(fuser.getUid(), userid);
         btn_send.setOnClickListener(v -> {
             String msg = text_send.getText().toString();
             if (!msg.isEmpty()){
@@ -345,7 +328,9 @@ public class MessageActivity extends AppCompatActivity {
                     } else if (chat.getImageUrl()!=null){
                         messageAdapter = new MessageAdapter(MessageActivity.this, mChat,pref);
                     }
+
                     recyclerView.setAdapter(messageAdapter);
+
                 }
             }
 
@@ -363,10 +348,30 @@ public class MessageActivity extends AppCompatActivity {
         reference.updateChildren(hashMap);
     }
 
-
     @Override
     protected void onResume() {
         super.onResume();
+        String userid = intent.getStringExtra("user_id");
+        username = findViewById(R.id.username1);
+        status_dynamic = findViewById(R.id.status_dynamic);
+        reference = FirebaseDatabase.getInstance().getReference("users").child(userid);
+        reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                User user = snapshot.getValue(User.class);
+                assert user != null;
+                username.setText(user.getUsername());
+                Log.d("username_11",user.getUsername());
+                Glide.with(getApplicationContext()).load(user.getImageURL()).into(profile_image);
+
+                status_dynamic.setText(user.getStatus());
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });Log.d("userid",userid);
         status("online");
     }
 

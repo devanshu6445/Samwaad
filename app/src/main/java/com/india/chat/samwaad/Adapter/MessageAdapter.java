@@ -22,6 +22,7 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.Priority;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
@@ -85,224 +86,10 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         
         switch (holder.getItemViewType()){
             case 0:
-                ViewHolderReceive viewHolderReceive = (ViewHolderReceive) holder;
-                if(chat.getMessage()!=null){
-
-
-                    viewHolderReceive.show_messages_receive.setText(chat.getMessage());
-                    viewHolderReceive.MessageImageView_receive.setVisibility(View.GONE);
-                    viewHolderReceive.roundView_receive.setVisibility(View.GONE);
-                    viewHolderReceive.show_messages_receive.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Toast.makeText(mContext, "Okay", Toast.LENGTH_SHORT).show();
-                            PopupMenu popupMenu = new PopupMenu(mContext,viewHolderReceive.show_messages_receive);
-                            popupMenu.inflate(R.menu.message_manipulaton_menu);
-                            popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                                @Override
-                                public boolean onMenuItemClick(MenuItem item) {
-                                    switch (item.getItemId()){
-                                        case R.id.delete:
-
-                                            new AlertDialog.Builder(mContext)
-                                                    .setMessage("Are you sure you want to delete this message?")
-                                                    .setPositiveButton("Delete for everyone", new DialogInterface.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(DialogInterface dialog, int which) {
-                                                            String unique_id = chat.getUnique_id();
-                                                            Log.d("unique_id", unique_id);
-                                                            String sender = chat.getSender();
-                                                            String receiver = chat.getReceiver();
-                                                            deleteMessage(sender,receiver,unique_id);
-                                                        }
-                                                    })
-                                                    .setNegativeButton("Delete for me only", new DialogInterface.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(DialogInterface dialog, int which) {
-                                                            String unique_id = chat.getUnique_id();
-                                                            Log.d("unique_id", unique_id);
-                                                            String sender = chat.getSender();
-                                                            String receiver = chat.getReceiver();
-                                                            deleteMessageForMe(sender, receiver, unique_id);
-                                                        }
-                                                    })
-                                                    .show();
-                                            break;
-                                        case R.id.info:
-                                            Toast.makeText(mContext, "You clicked info", Toast.LENGTH_SHORT).show();
-                                            break;
-                                    }
-                                    return false;
-                                }
-                            });
-                            popupMenu.show();
-                        }
-                    });
-                } else if (chat.getImageUrl()!=null){
-                    String imageurl = chat.getImageUrl();
-                    if (imageurl.startsWith("gs://")){
-                        StorageReference storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(imageurl);
-                        storageReference.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Uri> task) {
-                                if (task.isSuccessful()){
-                                    String downloadurl = task.getResult().toString();
-                                    Glide.with(viewHolderReceive.MessageImageView_receive.getContext())
-                                            .load(downloadurl)
-                                            .apply(new RequestOptions().transform(new RoundedCorners(50)).error(R.drawable.ic_person).skipMemoryCache(false).diskCacheStrategy(DiskCacheStrategy.ALL))
-                                            .into(viewHolderReceive.MessageImageView_receive);
-                                } else {
-                                    Log.d("LoadImageException", "failed", task.getException());
-                                }
-                            }
-                        });
-                    } else {
-                        Glide.with(viewHolderReceive.MessageImageView_receive.getContext())
-                                .load(chat.getImageUrl())
-                                .apply(new RequestOptions().transform(new RoundedCorners(50)).error(R.drawable.ic_person).skipMemoryCache(false).diskCacheStrategy(DiskCacheStrategy.ALL))
-                                .into(viewHolderReceive.MessageImageView_receive);
-                    }
-                    viewHolderReceive.show_messages_receive.setVisibility(View.GONE);
-                }
-                if (position == mChat.size()-1){
-                    try {
-                        if (chat.getMessage()!=null){
-                            if (chat.isIsseen()){
-                                viewHolderReceive.txt_seen_receive.setVisibility(View.GONE);
-                                viewHolderReceive.txt_seen_msg_receive.setText("Seen");
-                            } else {
-                                viewHolderReceive.txt_seen_receive.setVisibility(View.GONE);
-                                viewHolderReceive.txt_seen_msg_receive.setText("Delivered");
-                            }
-                        } else if (chat.getImageUrl()!=null) {
-                            if (chat.isIsseen()) {
-                                viewHolderReceive.txt_seen_msg_receive.setVisibility(View.GONE);
-                                viewHolderReceive.txt_seen_receive.setText("Seen");
-                            } else {
-                                viewHolderReceive.txt_seen_msg_receive.setVisibility(View.GONE);
-                                viewHolderReceive.txt_seen_receive.setText("Delivered");
-                            }
-                        } else {
-                            viewHolderReceive.txt_seen_msg_receive.setVisibility(View.GONE);
-                            viewHolderReceive.txt_seen_receive.setVisibility(View.GONE);
-                        }
-
-                    } catch (Exception e){
-                        e.printStackTrace();
-                    }
-                } else {
-                    viewHolderReceive.txt_seen_receive.setVisibility(View.GONE);
-                    viewHolderReceive.txt_seen_msg_receive.setVisibility(View.GONE);
-                }
+                receiveView(chat,holder,position);
                 break;
             case 1:
-                ViewHolderSend viewHolderSend = (ViewHolderSend) holder;
-                if(chat.getMessage()!=null){
-                    viewHolderSend.show_messages_send.setText(chat.getMessage());
-                    viewHolderSend.MessageImageView_send.setVisibility(View.GONE);
-                    viewHolderSend.roundView_send.setVisibility(View.GONE);
-                    viewHolderSend.show_messages_send.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Toast.makeText(mContext, "Okay", Toast.LENGTH_SHORT).show();
-                            PopupMenu popupMenu = new PopupMenu(mContext,viewHolderSend.show_messages_send);
-                            popupMenu.inflate(R.menu.message_manipulaton_menu);
-                            popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                                @Override
-                                public boolean onMenuItemClick(MenuItem item) {
-                                    switch (item.getItemId()){
-                                        case R.id.delete:
-
-                                            new AlertDialog.Builder(mContext)
-                                                    .setMessage("Are you sure you want to delete this message?")
-                                                    .setPositiveButton("Delete for everyone", new DialogInterface.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(DialogInterface dialog, int which) {
-                                                            String unique_id = chat.getUnique_id();
-                                                            Log.d("unique_id", unique_id);
-                                                            String sender = chat.getSender();
-                                                            String receiver = chat.getReceiver();
-                                                            deleteMessage(sender,receiver,unique_id);
-                                                        }
-                                                    })
-                                                    .setNegativeButton("Delete for me only", new DialogInterface.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(DialogInterface dialog, int which) {
-                                                            String unique_id = chat.getUnique_id();
-                                                            Log.d("unique_id", unique_id);
-                                                            String sender = chat.getSender();
-                                                            String receiver = chat.getReceiver();
-                                                            deleteMessageForMe(sender, receiver, unique_id);
-                                                        }
-                                                    })
-                                                    .show();
-                                            break;
-                                        case R.id.info:
-                                            Toast.makeText(mContext, "You clicked info", Toast.LENGTH_SHORT).show();
-                                            break;
-                                    }
-                                    return false;
-                                }
-                            });
-                            popupMenu.show();
-                        }
-                    });
-                } else if (chat.getImageUrl()!=null){
-                    String imageurl = chat.getImageUrl();
-                    if (imageurl.startsWith("gs://")){
-                        StorageReference storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(imageurl);
-                        storageReference.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Uri> task) {
-                                if (task.isSuccessful()){
-                                    String downloadurl = task.getResult().toString();
-                                    Glide.with(viewHolderSend.MessageImageView_send.getContext())
-                                            .load(downloadurl)
-                                            .apply(new RequestOptions().transform(new RoundedCorners(50)).error(R.drawable.ic_person).skipMemoryCache(false).diskCacheStrategy(DiskCacheStrategy.ALL))
-                                            .into(viewHolderSend.MessageImageView_send);
-                                } else {
-                                    Log.d("LoadImageException", "failed", task.getException());
-                                }
-                            }
-                        });
-                    } else {
-                        Glide.with(viewHolderSend.MessageImageView_send.getContext())
-                                .load(chat.getImageUrl())
-                                .apply(new RequestOptions().transform(new RoundedCorners(50)).error(R.drawable.ic_person).skipMemoryCache(false).diskCacheStrategy(DiskCacheStrategy.ALL))
-                                .into(viewHolderSend.MessageImageView_send);
-                    }
-                    viewHolderSend.show_messages_send.setVisibility(View.GONE);
-                }
-                if (position == mChat.size()-1){
-                    try {
-                        if (chat.getMessage()!=null){
-                            if (chat.isIsseen()){
-                                viewHolderSend.txt_seen_send.setVisibility(View.GONE);
-                                viewHolderSend.txt_seen_msg_send.setText("Seen");
-                            } else {
-                                viewHolderSend.txt_seen_send.setVisibility(View.GONE);
-                                viewHolderSend.txt_seen_msg_send.setText("Delivered");
-                            }
-                        } else if (chat.getImageUrl()!=null) {
-                            if (chat.isIsseen()) {
-                                viewHolderSend.txt_seen_msg_send.setVisibility(View.GONE);
-                                viewHolderSend.txt_seen_send.setText("Seen");
-                            } else {
-                                viewHolderSend.txt_seen_msg_send.setVisibility(View.GONE);
-                                viewHolderSend.txt_seen_send.setText("Delivered");
-                            }
-                        } else {
-                            viewHolderSend.txt_seen_msg_send.setVisibility(View.GONE);
-                            viewHolderSend.txt_seen_send.setVisibility(View.GONE);
-                        }
-
-                    } catch (Exception e){
-                        e.printStackTrace();
-                    }
-                } else {
-                    viewHolderSend.txt_seen_send.setVisibility(View.GONE);
-                    viewHolderSend.txt_seen_msg_send.setVisibility(View.GONE);
-                }
+                sendView(chat,holder,position);
                 break;
         }
 
@@ -397,5 +184,223 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         notifyDataSetChanged();
         notifyItemInserted(mChat.size());
         return mChat.size();
+    }
+
+    private void sendView(Chat chat, RecyclerView.ViewHolder holder,int position){
+        ViewHolderSend viewHolderSend = (ViewHolderSend) holder;
+        if(chat.getMessage()!=null){
+            viewHolderSend.show_messages_send.setText(chat.getMessage());
+            viewHolderSend.MessageImageView_send.setVisibility(View.GONE);
+            viewHolderSend.roundView_send.setVisibility(View.GONE);
+            viewHolderSend.show_messages_send.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(mContext, "Okay", Toast.LENGTH_SHORT).show();
+                    PopupMenu popupMenu = new PopupMenu(mContext,viewHolderSend.show_messages_send);
+                    popupMenu.inflate(R.menu.message_manipulaton_menu);
+                    popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem item) {
+                            switch (item.getItemId()){
+                                case R.id.delete:
+
+                                    new AlertDialog.Builder(mContext)
+                                            .setMessage("Are you sure you want to delete this message?")
+                                            .setPositiveButton("Delete for everyone", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    String unique_id = chat.getUnique_id();
+                                                    Log.d("unique_id", unique_id);
+                                                    String sender = chat.getSender();
+                                                    String receiver = chat.getReceiver();
+                                                    deleteMessage(sender,receiver,unique_id);
+                                                }
+                                            })
+                                            .setNegativeButton("Delete for me only", new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialog, int which) {
+                                                    String unique_id = chat.getUnique_id();
+                                                    Log.d("unique_id", unique_id);
+                                                    String sender = chat.getSender();
+                                                    String receiver = chat.getReceiver();
+                                                    deleteMessageForMe(sender, receiver, unique_id);
+                                                }
+                                            })
+                                            .show();
+                                    break;
+                                case R.id.info:
+                                    Toast.makeText(mContext, "You clicked info", Toast.LENGTH_SHORT).show();
+                                    break;
+                            }
+                            return false;
+                        }
+                    });
+                    popupMenu.show();
+                }
+            });
+        } else if (chat.getImageUrl()!=null){
+            String imageurl = chat.getImageUrl();
+            if (imageurl.startsWith("gs://")){
+                StorageReference storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(imageurl);
+                storageReference.getDownloadUrl().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()){
+                        String downloadurl = task.getResult().toString();
+                        Glide.with(viewHolderSend.MessageImageView_send.getContext())
+                                .load(downloadurl)
+                                .apply(new RequestOptions().transform(new RoundedCorners(50)).error(R.drawable.ic_person).skipMemoryCache(false).diskCacheStrategy(DiskCacheStrategy.ALL))
+                                .placeholder(R.drawable.glide_placeholder)
+                                .priority(Priority.IMMEDIATE)
+                                .into(viewHolderSend.MessageImageView_send);
+                    } else {
+                        Log.d("LoadImageException", "failed", task.getException());
+                    }
+                });
+            } else {
+                Glide.with(viewHolderSend.MessageImageView_send.getContext())
+                        .load(chat.getImageUrl())
+                        .apply(new RequestOptions().transform(new RoundedCorners(50)).error(R.drawable.ic_person).skipMemoryCache(false).diskCacheStrategy(DiskCacheStrategy.ALL))
+                        .placeholder(R.drawable.glide_placeholder)
+                        .priority(Priority.IMMEDIATE)
+                        .into(viewHolderSend.MessageImageView_send);
+            }
+            viewHolderSend.show_messages_send.setVisibility(View.GONE);
+        }
+        if (position == mChat.size()-1){
+            try {
+                if (chat.getMessage()!=null){
+                    if (chat.isIsseen()){
+                        viewHolderSend.txt_seen_send.setVisibility(View.GONE);
+                        viewHolderSend.txt_seen_msg_send.setText("Seen");
+                    } else {
+                        viewHolderSend.txt_seen_send.setVisibility(View.GONE);
+                        viewHolderSend.txt_seen_msg_send.setText("Delivered");
+                    }
+                } else if (chat.getImageUrl()!=null) {
+                    if (chat.isIsseen()) {
+                        viewHolderSend.txt_seen_msg_send.setVisibility(View.GONE);
+                        viewHolderSend.txt_seen_send.setText("Seen");
+                    } else {
+                        viewHolderSend.txt_seen_msg_send.setVisibility(View.GONE);
+                        viewHolderSend.txt_seen_send.setText("Delivered");
+                    }
+                } else {
+                    viewHolderSend.txt_seen_msg_send.setVisibility(View.GONE);
+                    viewHolderSend.txt_seen_send.setVisibility(View.GONE);
+                }
+
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        } else {
+            viewHolderSend.txt_seen_send.setVisibility(View.GONE);
+            viewHolderSend.txt_seen_msg_send.setVisibility(View.GONE);
+        }
+    }
+    private void receiveView(Chat chat,RecyclerView.ViewHolder holder,int position){
+        ViewHolderReceive viewHolderReceive = (ViewHolderReceive) holder;
+        if(chat.getMessage()!=null){
+
+
+            viewHolderReceive.show_messages_receive.setText(chat.getMessage());
+            viewHolderReceive.MessageImageView_receive.setVisibility(View.GONE);
+            viewHolderReceive.roundView_receive.setVisibility(View.GONE);
+            viewHolderReceive.show_messages_receive.setOnClickListener(v -> {
+                Toast.makeText(mContext, "Okay", Toast.LENGTH_SHORT).show();
+                PopupMenu popupMenu = new PopupMenu(mContext,viewHolderReceive.show_messages_receive);
+                popupMenu.inflate(R.menu.message_manipulaton_menu);
+                popupMenu.setOnMenuItemClickListener(item -> {
+                    switch (item.getItemId()){
+                        case R.id.delete:
+
+                            new AlertDialog.Builder(mContext)
+                                    .setMessage("Are you sure you want to delete this message?")
+                                    .setPositiveButton("Delete for everyone", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            String unique_id = chat.getUnique_id();
+                                            Log.d("unique_id", unique_id);
+                                            String sender = chat.getSender();
+                                            String receiver = chat.getReceiver();
+                                            deleteMessage(sender,receiver,unique_id);
+                                        }
+                                    })
+                                    .setNegativeButton("Delete for me only", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            String unique_id = chat.getUnique_id();
+                                            Log.d("unique_id", unique_id);
+                                            String sender = chat.getSender();
+                                            String receiver = chat.getReceiver();
+                                            deleteMessageForMe(sender, receiver, unique_id);
+                                        }
+                                    })
+                                    .show();
+                            break;
+                        case R.id.info:
+                            Toast.makeText(mContext, "You clicked info", Toast.LENGTH_SHORT).show();
+                            break;
+                    }
+                    return false;
+                });
+                popupMenu.show();
+            });
+        } else if (chat.getImageUrl()!=null){
+            String imageurl = chat.getImageUrl();
+            if (imageurl.startsWith("gs://")){
+                StorageReference storageReference = FirebaseStorage.getInstance().getReferenceFromUrl(imageurl);
+                storageReference.getDownloadUrl().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()){
+                        if (task.getResult()!=null){
+                        String downloadurl = task.getResult().toString();
+                        Glide.with(viewHolderReceive.MessageImageView_receive.getContext())
+                                .load(downloadurl)
+                                .apply(new RequestOptions().transform(new RoundedCorners(50)).error(R.drawable.ic_person).skipMemoryCache(false).diskCacheStrategy(DiskCacheStrategy.ALL))
+                                .placeholder(R.drawable.glide_placeholder)
+                                .priority(Priority.HIGH)
+                                .into(viewHolderReceive.MessageImageView_receive);}
+                    } else {
+                        Log.d("LoadImageException", "failed", task.getException());
+                    }
+                });
+            } else {
+                Glide.with(viewHolderReceive.MessageImageView_receive.getContext())
+                        .load(chat.getImageUrl())
+                        .apply(new RequestOptions().transform(new RoundedCorners(50)).error(R.drawable.ic_person).skipMemoryCache(false).diskCacheStrategy(DiskCacheStrategy.ALL))
+                        .placeholder(R.drawable.glide_placeholder)
+                        .priority(Priority.HIGH)
+                        .into(viewHolderReceive.MessageImageView_receive);
+            }
+            viewHolderReceive.show_messages_receive.setVisibility(View.GONE);
+        }
+        if (position == mChat.size()-1){
+            try {
+                if (chat.getMessage()!=null){
+                    if (chat.isIsseen()){
+                        viewHolderReceive.txt_seen_receive.setVisibility(View.GONE);
+                        viewHolderReceive.txt_seen_msg_receive.setText("Seen");
+                    } else {
+                        viewHolderReceive.txt_seen_receive.setVisibility(View.GONE);
+                        viewHolderReceive.txt_seen_msg_receive.setText("Delivered");
+                    }
+                } else if (chat.getImageUrl()!=null) {
+                    if (chat.isIsseen()) {
+                        viewHolderReceive.txt_seen_msg_receive.setVisibility(View.GONE);
+                        viewHolderReceive.txt_seen_receive.setText("Seen");
+                    } else {
+                        viewHolderReceive.txt_seen_msg_receive.setVisibility(View.GONE);
+                        viewHolderReceive.txt_seen_receive.setText("Delivered");
+                    }
+                } else {
+                    viewHolderReceive.txt_seen_msg_receive.setVisibility(View.GONE);
+                    viewHolderReceive.txt_seen_receive.setVisibility(View.GONE);
+                }
+
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        } else {
+            viewHolderReceive.txt_seen_receive.setVisibility(View.GONE);
+            viewHolderReceive.txt_seen_msg_receive.setVisibility(View.GONE);
+        }
     }
 }

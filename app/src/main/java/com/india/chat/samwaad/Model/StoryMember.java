@@ -7,12 +7,19 @@ public class StoryMember {
     String timeEnd;
     String timeUpload;
     String type;
-    String Caption;
-    String url;
     String uid;
 
     public StoryMember(){
 
+    }
+
+    public StoryMember(String postUri, String name, String timeEnd, String timeUpload, String type, String uid) {
+        this.postUri = postUri;
+        this.name = name;
+        this.timeEnd = timeEnd;
+        this.timeUpload = timeUpload;
+        this.type = type;
+        this.uid = uid;
     }
 
     public String getPostUri() {
@@ -53,22 +60,6 @@ public class StoryMember {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public String getCaption() {
-        return Caption;
-    }
-
-    public void setCaption(String caption) {
-        Caption = caption;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
     }
 
     public String getUid() {

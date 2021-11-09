@@ -3,6 +3,19 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Samwaad/app/src/main/res/drawable/edit_text_b.xml" value="0.14290540540540542" />
+        <entry key="..\:/Samwaad/app/src/main/res/drawable/glide_placeholder.xml" value="0.14290540540540542" />
+        <entry key="..\:/Samwaad/app/src/main/res/drawable/ic_back_arrow.xml" value="0.14290540540540542" />
+        <entry key="..\:/Samwaad/app/src/main/res/drawable/ic_languages.xml" value="0.14290540540540542" />
+        <entry key="..\:/Samwaad/app/src/main/res/drawable/ic_logout.xml" value="0.14290540540540542" />
+        <entry key="..\:/Samwaad/app/src/main/res/drawable/ic_notifications.xml" value="0.14290540540540542" />
+        <entry key="..\:/Samwaad/app/src/main/res/drawable/ic_person.xml" value="0.14290540540540542" />
+        <entry key="..\:/Samwaad/app/src/main/res/drawable/login_shape_bk.xml" value="0.14290540540540542" />
+        <entry key="..\:/Samwaad/app/src/main/res/layout/activity_message.xml" value="0.25" />
+        <entry key="..\:/Samwaad/app/src/main/res/layout/chat_item_left.xml" value="0.9" />
+        <entry key="..\:/Samwaad/app/src/main/res/layout/chat_item_right.xml" value="0.38920454545454547" />
+        <entry key="..\:/Samwaad/app/src/main/res/layout/fragment_dashboard.xml" value="0.14" />
+        <entry key="..\:/Samwaad/app/src/main/res/layout/story_recyclerview_layout.xml" value="0.22" />
         <entry key="..\:/Users/Devan/AndroidStudioProjects/Samwaad/app/src/main/res/layout/activity_main.xml" value="0.33" />
         <entry key="..\:/Users/Devan/AndroidStudioProjects/Samwaad/app/src/main/res/layout/contacts_item.xml" value="0.13243243243243244" />
         <entry key="..\:/Users/Devan/AndroidStudioProjects/Samwaad/app/src/main/res/layout/fragment_dashboard.xml" value="0.13148907103825136" />
