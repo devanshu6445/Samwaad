@@ -23,10 +23,13 @@ import com.google.android.gms.tasks.Task;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseException;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -37,8 +40,11 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import com.india.chat.samwaad.Adapter.StoryAdapter;
+import com.india.chat.samwaad.Adapter.UserAdapter;
+import com.india.chat.samwaad.Model.Chat;
 import com.india.chat.samwaad.Model.Contacts;
 import com.india.chat.samwaad.Model.StoryMember;
+import com.india.chat.samwaad.Model.User;
 import com.india.chat.samwaad.R;
 
 import java.util.ArrayList;
@@ -53,6 +59,8 @@ public class DashboardFragment extends Fragment {
     private List<StoryMember> memberList;
     private StoryAdapter storyAdapter;
     DatabaseReference reference;
+    private List<String> usersList;
+    private List<User> mUsers;
     private final int STORY_REQUEST_CODE=1;
 
 
@@ -61,17 +69,47 @@ public class DashboardFragment extends Fragment {
 
         View root = inflater.inflate(R.layout.fragment_dashboard, container, false);
         addStory = root.findViewById(R.id.addStory);
+
         recyclerView_story = root.findViewById(R.id.recycler_view_story);
         recyclerView_story.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         recyclerView_story.setLayoutManager(linearLayoutManager);
-        storyAdapter = new StoryAdapter();
-        recyclerView_story.setAdapter(storyAdapter);
+
         addStory.setOnClickListener(v ->{
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("image/*");
             startActivityForResult(intent,STORY_REQUEST_CODE);
+        });
+        mUsers = new ArrayList<>();
+
+        usersList = new ArrayList<>();
+
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Chats");
+        final FirebaseUser fuser = FirebaseAuth.getInstance().getCurrentUser();
+        reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                usersList.clear();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()){
+                    for (DataSnapshot snapshot1 : snapshot.getChildren()){
+                        Chat chat = snapshot1.getValue(Chat.class);
+
+                        if (chat.getSender().equals(fuser.getUid())){
+                            usersList.add(chat.getReceiver());
+                        }
+                        if (chat.getReceiver().equals(fuser.getUid())){
+                            usersList.add(chat.getSender());
+                        }
+                    }
+                }
+                readUsers();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
         });
         return root;
 
@@ -125,11 +163,11 @@ public class DashboardFragment extends Fragment {
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             assert user != null;
             StoryMember storyMember = new StoryMember(posturl, user.getUid(), timeEnd, timeCreated, type, user.getUid());
-            reference.child("story").child(user.getUid()).setValue(storyMember).addOnCompleteListener(task -> {
+            reference.child("story").child(user.getUid()).push().setValue(storyMember).addOnCompleteListener(task -> {
                 if (task.isSuccessful()){
                     Toast.makeText(getContext(), "Story upload successful", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(getContext(),"An error has occured",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(),"An error has occurred",Toast.LENGTH_SHORT).show();
                 }
             });
         }catch (DatabaseException e){
@@ -165,6 +203,77 @@ public class DashboardFragment extends Fragment {
                 }
                 Log.d("successId3",String.valueOf(refCont.size()));
 
+
+            }
+        });
+    }
+    private void showStory(List<User> mUsers){
+        memberList = new ArrayList<>();
+        reference = FirebaseDatabase.getInstance().getReference();
+        memberList.clear();
+        for (User user : mUsers){
+            reference = FirebaseDatabase.getInstance().getReference("story").child(user.getId());
+                    reference.addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            long count = dataSnapshot.getChildrenCount();
+                            for (DataSnapshot snapshot : dataSnapshot.getChildren()){
+                                String name = snapshot.child("name").getValue(String.class);
+                                String uid = snapshot.child("uid").getValue(String.class);
+                                String postUri = snapshot.child("postUri").getValue(String.class);
+                                String type = snapshot.child("type").getValue(String.class);
+                                String timeEnd = snapshot.child("timeEnd").getValue(String.class);
+                                String timeUpload = snapshot.child("timeUpload").getValue(String.class);
+                                StoryMember storyMember = new StoryMember(postUri,name,timeEnd,timeUpload,type,uid);
+                                memberList.add(storyMember);
+
+                            }
+                            storyAdapter = new StoryAdapter(getContext(),memberList,count);
+                            recyclerView_story.setAdapter(storyAdapter);
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
+        }
+    }
+    private void readUsers() {
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("users");
+        reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    mUsers.clear();
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        User user = snapshot.getValue(User.class);
+                        for (String id : usersList){
+                            assert user != null;
+                            if(user.getId().equals(id)){
+                                if(mUsers.size()!=0){
+                                    int flag=0;
+                                    for(User u : mUsers) {
+                                        if (user.getId().equals(u.getId())) {
+                                            flag = 1;
+                                            break;
+                                        }
+                                    }
+                                    if(flag==0)
+                                        mUsers.add(user);
+                                }else{
+
+                                    mUsers.add(user);
+                                }
+                            }
+                        }
+
+                    }
+                    //here
+                showStory(mUsers);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
 
             }
         });

@@ -55,6 +55,7 @@ import com.india.chat.samwaad.login_to_samwaad;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -84,21 +85,21 @@ public class HomeFragment extends Fragment {
         AppBarLayout app_lay = root.findViewById(R.id.app_lay);
         app_lay.setOutlineProvider(null);
         img_profile_home = root.findViewById(R.id.img_profile_home);
+        Log.d("user_iddd",user.getUid());
         firestore.collection("users").document(user.getUid())
-                .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot documentSnapshot) {
-                if (documentSnapshot.exists()){
-                    if (documentSnapshot.get("ImageURL")!=null){
-                        Glide.with(img_profile_home.getContext())
-                                .load(documentSnapshot.get("ImageURL"))
-                                .into(img_profile_home);
-                    } else{
-                        img_profile_home.setImageResource(R.drawable.ic_person);
+                .get().addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()){
+                        Log.d("ImageURLLL",documentSnapshot.get("ImageURL").toString());
+                        if (documentSnapshot.get("ImageURL")!=null){
+
+                            Glide.with(img_profile_home.getContext())
+                                    .load(documentSnapshot.get("ImageURL"))
+                                    .into(img_profile_home);
+                        } else{
+                            img_profile_home.setImageResource(R.drawable.ic_person);
+                        }
                     }
-                }
-            }
-        });
+                });
 
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users");
         ref.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
