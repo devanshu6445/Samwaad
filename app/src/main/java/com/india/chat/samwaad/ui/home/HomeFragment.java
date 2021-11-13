@@ -23,6 +23,7 @@ import android.provider.ContactsContract;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -43,7 +44,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.gson.JsonObject;
 import com.india.chat.samwaad.Adapter.UserAdapter;
 import com.india.chat.samwaad.MainActivity;
@@ -86,20 +89,22 @@ public class HomeFragment extends Fragment {
         app_lay.setOutlineProvider(null);
         img_profile_home = root.findViewById(R.id.img_profile_home);
         Log.d("user_iddd",user.getUid());
-        firestore.collection("users").document(user.getUid())
-                .get().addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()){
-                        Log.d("ImageURLLL",documentSnapshot.get("ImageURL").toString());
-                        if (documentSnapshot.get("ImageURL")!=null){
+        /*firestore.collection("users").document(user.getUid())
+                .addSnapshotListener((value, error) -> {
+                    if(value!=null){
+                        if (value.exists()){
+                            Log.d("ImageURLLL",value.get("ImageURL").toString());
+                            if (value.get("ImageURL")!=null){
 
-                            Glide.with(img_profile_home.getContext())
-                                    .load(documentSnapshot.get("ImageURL"))
-                                    .into(img_profile_home);
-                        } else{
-                            img_profile_home.setImageResource(R.drawable.ic_person);
+                                Glide.with(img_profile_home.getContext())
+                                        .load(value.get("ImageURL"))
+                                        .into(img_profile_home);
+                            } else{
+                                img_profile_home.setImageResource(R.drawable.ic_person);
+                            }
                         }
                     }
-                });
+                });*/
 
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users");
         ref.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {

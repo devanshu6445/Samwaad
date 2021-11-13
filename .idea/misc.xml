@@ -3,19 +3,32 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Samwaad/app/src/main/res/drawable/back_to_home_button.xml" value="0.14290540540540542" />
+        <entry key="..\:/Samwaad/app/src/main/res/drawable/background_left.xml" value="0.14290540540540542" />
+        <entry key="..\:/Samwaad/app/src/main/res/drawable/button_background.xml" value="0.14290540540540542" />
+        <entry key="..\:/Samwaad/app/src/main/res/drawable/corner_circle.xml" value="0.14290540540540542" />
+        <entry key="..\:/Samwaad/app/src/main/res/drawable/corner_status.xml" value="0.14290540540540542" />
         <entry key="..\:/Samwaad/app/src/main/res/drawable/edit_text_b.xml" value="0.14290540540540542" />
+        <entry key="..\:/Samwaad/app/src/main/res/drawable/front_image.xml" value="0.14290540540540542" />
         <entry key="..\:/Samwaad/app/src/main/res/drawable/glide_placeholder.xml" value="0.14290540540540542" />
         <entry key="..\:/Samwaad/app/src/main/res/drawable/ic_back_arrow.xml" value="0.14290540540540542" />
+        <entry key="..\:/Samwaad/app/src/main/res/drawable/ic_baseline_add_24.xml" value="0.1" />
+        <entry key="..\:/Samwaad/app/src/main/res/drawable/ic_baseline_more_vert_24.xml" value="0.14290540540540542" />
+        <entry key="..\:/Samwaad/app/src/main/res/drawable/ic_edit_profile.xml" value="0.14290540540540542" />
         <entry key="..\:/Samwaad/app/src/main/res/drawable/ic_languages.xml" value="0.14290540540540542" />
         <entry key="..\:/Samwaad/app/src/main/res/drawable/ic_logout.xml" value="0.14290540540540542" />
         <entry key="..\:/Samwaad/app/src/main/res/drawable/ic_notifications.xml" value="0.14290540540540542" />
         <entry key="..\:/Samwaad/app/src/main/res/drawable/ic_person.xml" value="0.14290540540540542" />
         <entry key="..\:/Samwaad/app/src/main/res/drawable/login_shape_bk.xml" value="0.14290540540540542" />
+        <entry key="..\:/Samwaad/app/src/main/res/layout/activity_main.xml" value="0.22" />
         <entry key="..\:/Samwaad/app/src/main/res/layout/activity_message.xml" value="0.25" />
+        <entry key="..\:/Samwaad/app/src/main/res/layout/activity_stories.xml" value="0.11987704918032786" />
         <entry key="..\:/Samwaad/app/src/main/res/layout/chat_item_left.xml" value="0.9" />
         <entry key="..\:/Samwaad/app/src/main/res/layout/chat_item_right.xml" value="0.38920454545454547" />
-        <entry key="..\:/Samwaad/app/src/main/res/layout/fragment_dashboard.xml" value="0.14" />
-        <entry key="..\:/Samwaad/app/src/main/res/layout/story_recyclerview_layout.xml" value="0.22" />
+        <entry key="..\:/Samwaad/app/src/main/res/layout/fragment_dashboard.xml" value="0.17" />
+        <entry key="..\:/Samwaad/app/src/main/res/layout/story_recyclerview_layout.xml" value="0.75" />
+        <entry key="..\:/Samwaad/app/src/main/res/layout/user_item.xml" value="0.4321167883211679" />
+        <entry key="..\:/Samwaad/app/src/main/res/menu/bottom_nav_menu.xml" value="0.13243243243243244" />
         <entry key="..\:/Users/Devan/AndroidStudioProjects/Samwaad/app/src/main/res/layout/activity_main.xml" value="0.33" />
         <entry key="..\:/Users/Devan/AndroidStudioProjects/Samwaad/app/src/main/res/layout/contacts_item.xml" value="0.13243243243243244" />
         <entry key="..\:/Users/Devan/AndroidStudioProjects/Samwaad/app/src/main/res/layout/fragment_dashboard.xml" value="0.13148907103825136" />

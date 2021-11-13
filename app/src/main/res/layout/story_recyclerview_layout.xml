@@ -1,16 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/storyView"
     android:layout_width="match_parent"
-    android:layout_height="100dp">
+    android:layout_height="65dp">
 
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/storyImageView"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:layout_gravity="center_vertical"
+    <RelativeLayout
+
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:layout_marginStart="10dp"
-        android:src="@drawable/ic_person"
-        />
+        android:layout_gravity="center_vertical"
+        android:background="@drawable/corner_status">
+
+    <RelativeLayout
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/corner_circle">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/storyImageView"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_centerInParent="true"
+            android:src="@drawable/ic_person"
+
+            />
+    </RelativeLayout>
+
+    </RelativeLayout>
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -20,14 +42,16 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="24sp"
+            android:textSize="18sp"
             android:id="@+id/textView_name"
+            android:singleLine="true"
             android:text="Devanshu"
             />
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
+            android:textSize="14sp"
+            android:singleLine="true"
             android:text="Time"
             android:id="@+id/textView_created_time"/>
 

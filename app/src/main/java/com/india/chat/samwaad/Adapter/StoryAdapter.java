@@ -1,6 +1,8 @@
 package com.india.chat.samwaad.Adapter;
 
 import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,14 +12,20 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.india.chat.samwaad.Model.StoryMember;
 import com.india.chat.samwaad.R;
+import com.india.chat.samwaad.StoriesActivity;
 
 import org.w3c.dom.Text;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import xute.storyview.StoryModel;
+import xute.storyview.StoryView;
 
 public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -28,13 +36,19 @@ public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     private Context context;
     private long count;
     List<StoryMember> storyList;
+    QuerySnapshot value;
 
     public StoryAdapter(){};
 
-    public StoryAdapter(Context context, List<StoryMember> storyList,long count) {
+    public StoryAdapter(Context context, List<StoryMember> storyList) {
         this.context = context;
         this.storyList = storyList;
-        this.count = count;
+    }
+
+    public StoryAdapter(Context context, List<StoryMember> storyList, QuerySnapshot value) {
+        this.context = context;
+        this.storyList = storyList;
+        this.value = value;
     }
 
     @NonNull
@@ -48,11 +62,31 @@ public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         StoryMember storyMember = storyList.get(position);
         ViewHolder viewHolder = (ViewHolder) holder;
+
         Glide.with(context)
                 .load(storyMember.getPostUri())
                 .into(viewHolder.storyImageView);
         viewHolder.name_user.setText(storyMember.getName());
-        viewHolder.storyCreatedTime.setText(String.valueOf(count));
+
+        viewHolder.storyView.setOnClickListener(view -> {
+            int i=0,j=0;
+
+            for (QueryDocumentSnapshot snap : value){
+                i++;
+            }
+            String[] urls = new String[i];
+            for(QueryDocumentSnapshot snapshot : value){
+                String url = snapshot.get("postUri").toString();
+                if (j<i){
+                    urls[j] = url;
+                }
+                Log.d("postUrl",urls[j]);
+                j++;
+            }
+            Intent intent = new Intent(context, StoriesActivity.class);
+            intent.putExtra("array",urls);
+            context.startActivity(intent);
+        });
     }
 
     @Override
@@ -65,12 +99,16 @@ public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         public CircleImageView storyImageView;
         public TextView name_user;
         public TextView storyCreatedTime;
+        public View storyView;
+
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+
             storyImageView = itemView.findViewById(R.id.storyImageView);
             name_user = itemView.findViewById(R.id.textView_name);
             storyCreatedTime = itemView.findViewById(R.id.textView_created_time);
+            storyView = itemView.findViewById(R.id.storyView);
 
         }
     }
