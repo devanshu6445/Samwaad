@@ -12,6 +12,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -64,30 +65,22 @@ public class UserProfile extends Fragment {
                 });
 
 
-        changePassword.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), ChangePassword.class);
-                startActivity(intent);
-            }
+        changePassword.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), ChangePassword.class);
+            startActivity(intent);
         });
-        signout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                status("offline");
-                FirebaseAuth user = FirebaseAuth.getInstance();
-                Intent intent = new Intent(getActivity(), login_to_samwaad.class);
-                user.signOut();
-                startActivity(intent);
+        signout.setOnClickListener(v -> {
+            status("offline");
+            FirebaseAuth user = FirebaseAuth.getInstance();
+            Intent intent = new Intent(getActivity(), login_to_samwaad.class);
+            intent.putExtra("signout",true);
+            startActivity(intent);
 
-            }
+
         });
-        editProfile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), EditPersonalDetails.class);
-                startActivity(intent);
-            }
+        editProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), EditPersonalDetails.class);
+            startActivity(intent);
         });
         return root;
 

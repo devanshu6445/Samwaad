@@ -228,57 +228,59 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 
     private void showTime(final String userid, final TextView timestamp){
         final FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Chats").child(firebaseUser.getUid()+"_"+userid);
-        reference.addValueEventListener(new ValueEventListener() {
-            @RequiresApi(api = Build.VERSION_CODES.O)
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()){
-                    Chat chat = dataSnapshot.getValue(Chat.class);
+        if (firebaseUser!=null) {
+            DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Chats").child(firebaseUser.getUid() + "_" + userid);
+            reference.addValueEventListener(new ValueEventListener() {
+                @RequiresApi(api = Build.VERSION_CODES.O)
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                        Chat chat = dataSnapshot.getValue(Chat.class);
 
-                    if (chat.getReceiver().equals(firebaseUser.getUid()) && chat.getSender().equals(userid)){
-                        if (chat.getMessage() == null) {
-                            if(chat.getImageUrl()== null){
-                                timestamp.setVisibility(View.GONE);
+                        if (chat.getReceiver().equals(firebaseUser.getUid()) && chat.getSender().equals(userid)) {
+                            if (chat.getMessage() == null) {
+                                if (chat.getImageUrl() == null) {
+                                    timestamp.setVisibility(View.GONE);
+                                }
+                            } else {
+                                long ts = chat.getTimestamp();
+
+                                LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(ts), TimeZone.getDefault().toZoneId());
+                                DayOfWeek dayOfWeek = localDateTime.getDayOfWeek();
+                                String day = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US);
+                                DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+                                String datetime = localDateTime.format(formatter);
+
+                                timestamp.setText(day);
                             }
-                        } else {
-                            long ts = chat.getTimestamp();
+                        } else if (chat.getReceiver().equals(userid) && chat.getSender().equals(firebaseUser.getUid())) {
+                            if (chat.getMessage() == null) {
+                                if (chat.getImageUrl() == null) {
+                                    timestamp.setVisibility(View.GONE);
+                                }
+                            } else {
+                                long ts = chat.getTimestamp();
+                                //converts timestamp to local date time
+                                LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(ts), TimeZone.getDefault().toZoneId());
+                                //converts local date time to day of the week
+                                DayOfWeek dayOfWeek = localDateTime.getDayOfWeek();
+                                String day = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US);
+                                //will format local date time to readable date but in use now
+                                DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+                                String datetime = localDateTime.format(formatter);
 
-                            LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(ts), TimeZone.getDefault().toZoneId());
-                            DayOfWeek dayOfWeek = localDateTime.getDayOfWeek();
-                            String day = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US);
-                            DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
-                            String datetime = localDateTime.format(formatter);
-
-                            timestamp.setText(day);
-                        }
-                    } else if(chat.getReceiver().equals(userid) && chat.getSender().equals(firebaseUser.getUid())){
-                        if (chat.getMessage() == null) {
-                            if(chat.getImageUrl()== null){
-                                timestamp.setVisibility(View.GONE);
+                                timestamp.setText(day);
                             }
-                        } else {
-                            long ts = chat.getTimestamp();
-                            //converts timestamp to local date time
-                            LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(ts), TimeZone.getDefault().toZoneId());
-                            //converts local date time to day of the week
-                            DayOfWeek dayOfWeek = localDateTime.getDayOfWeek();
-                            String day = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US);
-                            //will format local date time to readable date but in use now
-                            DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
-                            String datetime = localDateTime.format(formatter);
-
-                            timestamp.setText(day);
                         }
+
                     }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
 
                 }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
+            });
+        }
     }
 }

@@ -20,7 +20,10 @@ import com.india.chat.samwaad.StoriesActivity;
 
 import org.w3c.dom.Text;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -63,25 +66,50 @@ public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         StoryMember storyMember = storyList.get(position);
         ViewHolder viewHolder = (ViewHolder) holder;
 
+        long timeCreated = Long.parseLong(storyMember.getTimeUpload());
+        long currentTime = System.currentTimeMillis();
+        long difference = currentTime-timeCreated;
+        if (difference<=3600){
+            int minutes = (int)difference/60;
+            String time = minutes +"minutes";
+            viewHolder.storyCreatedTime.setText(time);
+        } else if(difference<=86400){
+            Calendar c = Calendar.getInstance();
+            c.setTimeInMillis(timeCreated);
+            Date d = c.getTime();
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
+            String time1 = simpleDateFormat.format(d);
+            viewHolder.storyCreatedTime.setText(time1);
+        } else{
+            Calendar c = Calendar.getInstance();
+            c.setTimeInMillis(timeCreated);
+            Date d = c.getTime();
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            String time1 = simpleDateFormat.format(d);
+            viewHolder.storyCreatedTime.setText(time1);
+        }
+
+
         Glide.with(context)
                 .load(storyMember.getPostUri())
                 .into(viewHolder.storyImageView);
         viewHolder.name_user.setText(storyMember.getName());
 
         viewHolder.storyView.setOnClickListener(view -> {
-            int i=0,j=0;
+            int i=0;
 
             for (QueryDocumentSnapshot snap : value){
                 i++;
             }
+            int j=i-1;
             String[] urls = new String[i];
             for(QueryDocumentSnapshot snapshot : value){
                 String url = snapshot.get("postUri").toString();
-                if (j<i){
+                if (j>=0){
                     urls[j] = url;
                 }
                 Log.d("postUrl",urls[j]);
-                j++;
+                j--;
             }
             Intent intent = new Intent(context, StoriesActivity.class);
             intent.putExtra("array",urls);

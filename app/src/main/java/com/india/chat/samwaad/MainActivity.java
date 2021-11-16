@@ -1,8 +1,12 @@
 package com.india.chat.samwaad;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -41,6 +45,10 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         BottomNavigationView navView = findViewById(R.id.nav_view);
         navView.setOnNavigationItemSelectedListener(this);
         navView.setSelectedItemId(R.id.chat);
+        SharedPreferences preferences = getSharedPreferences("setting",MODE_PRIVATE);
+        String s = preferences.getString("image_url","nothing");
+        Toast.makeText(MainActivity.this, s, Toast.LENGTH_SHORT).show();
+
         fragmentManager.beginTransaction()
                 .add(R.id.container,userProfile,getString(R.string.user_profile)).hide(userProfile)
                 .add(R.id.container,notificationsFragment,getString(R.string.search)).hide(notificationsFragment)

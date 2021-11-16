@@ -236,14 +236,10 @@ public class MessageActivity extends AppCompatActivity {
         }
     }
 
-    private void putImageInStorage(StorageReference storageReference, Uri uri) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = preferences.edit();
-        editor.putString("upload_status","uploading");
-        editor.apply();
+    private void putImageInStorage(@NonNull StorageReference storageReference, Uri uri) {
+
         fuser = FirebaseAuth.getInstance().getCurrentUser();
-        intent = getIntent();
-        final String userid = intent.getStringExtra("user_id");
+
         storageReference.putFile(uri).addOnCompleteListener(MessageActivity.this,
                 task -> {
                     if (task.isSuccessful()) {
@@ -274,8 +270,6 @@ public class MessageActivity extends AppCompatActivity {
 
                                                     reference.child("Chats").child(sender+"_"+receiver).child(ts).setValue(hashMap);
                                                     reference.child("Chats").child(receiver+"_"+sender).child(ts).setValue(hashMap);
-                                                    editor.putString("upload_status","uploaded");
-                                                    editor.apply();
                                                 }
                                             }
                                         });

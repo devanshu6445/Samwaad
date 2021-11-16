@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,7 +19,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -28,39 +26,26 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseException;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-
 import com.india.chat.samwaad.Adapter.StoryAdapter;
-import com.india.chat.samwaad.Adapter.UserAdapter;
 import com.india.chat.samwaad.Model.Chat;
 import com.india.chat.samwaad.Model.Contacts;
 import com.india.chat.samwaad.Model.StoryMember;
 import com.india.chat.samwaad.Model.User;
 import com.india.chat.samwaad.R;
-import com.india.chat.samwaad.StoriesActivity;
 
 import java.util.ArrayList;
-
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -154,13 +139,10 @@ public class DashboardFragment extends Fragment {
                 if (task.isSuccessful()){
                     if(task.getResult()!=null){
                         task.getResult().getMetadata().getReference().getDownloadUrl()
-                                .addOnCompleteListener(new OnCompleteListener<Uri>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Uri> task) {
-                                        String imageurl = task.getResult().toString();
-                                        Log.d("ImageUpload",imageurl);
-                                        addStory(imageurl,type);
-                                    }
+                                .addOnCompleteListener(task1 -> {
+                                    String imageurl = task1.getResult().toString();
+                                    Log.d("ImageUpload",imageurl);
+                                    addStory(imageurl,type);
                                 });
                     }
                 }
@@ -198,6 +180,7 @@ public class DashboardFragment extends Fragment {
                 @Override
                 public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
                     int i=0;
+                    assert value != null;
                     for (QueryDocumentSnapshot queryDocumentSnapshot : value){
                         if (i==0){
                             String name = queryDocumentSnapshot.get("name").toString();
@@ -216,30 +199,6 @@ public class DashboardFragment extends Fragment {
                     recyclerView_story.setAdapter(storyAdapter);
                 }
             });
-            /*reference.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    long count = dataSnapshot.getChildrenCount();
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        String name = snapshot.child("name").getValue(String.class);
-                        String uid = snapshot.child("uid").getValue(String.class);
-                        String postUri = snapshot.child("postUri").getValue(String.class);
-                        String type = snapshot.child("type").getValue(String.class);
-                        String timeEnd = snapshot.child("timeEnd").getValue(String.class);
-                        String timeUpload = snapshot.child("timeUpload").getValue(String.class);
-                        StoryMember storyMember = new StoryMember(postUri, name, timeEnd, timeUpload, type, uid);
-                        memberList.add(storyMember);
-
-                    }
-                    storyAdapter = new StoryAdapter(getContext(), memberList, count);
-                    recyclerView_story.setAdapter(storyAdapter);
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });*/
         }
     }
 
@@ -275,7 +234,7 @@ public class DashboardFragment extends Fragment {
             }
         });
     }
-    private void showStory(List<User> mUsers){
+    private void showStory(@NonNull List<User> mUsers){
         memberList = new ArrayList<>();
         reference = FirebaseDatabase.getInstance().getReference();
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();

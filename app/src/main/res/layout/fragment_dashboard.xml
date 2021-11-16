@@ -9,15 +9,42 @@
     android:orientation="vertical"
     tools:context=".ui.dashboard.DashboardFragment">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:layout_marginTop="10dp"
-        android:id="@+id/recycler_view_story"
+    <LinearLayout
+        android:id="@+id/linearLayout2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:orientation="vertical">
+
+        <include
+            android:id="@+id/lay"
+            android:layout_marginTop="15dp"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            layout="@layout/story_recyclerview_layout"
+            app:layout_constraintBottom_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:paddingStart="10dp"
+            android:text="Viewed Updates"
+            android:textColor="#818181"
+
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view_story"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@+id/lay" />
+
+    </LinearLayout>
 
     <Button
         android:id="@+id/addStory"
@@ -25,9 +52,8 @@
         android:layout_height="50dp"
         android:layout_marginEnd="25dp"
         android:layout_marginBottom="60dp"
-
         android:background="@drawable/ic_baseline_add_24"
-        app:layout_constraintBottom_toBottomOf="@+id/recycler_view_story"
+        app:layout_constraintBottom_toBottomOf="@+id/linearLayout2"
         app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

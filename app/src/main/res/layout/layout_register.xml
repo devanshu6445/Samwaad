@@ -25,12 +25,13 @@
             android:textSize="32sp"
             android:layout_marginTop="@dimen/loginViewsMargin"/>
 
-        <de.hdodenhof.circleimageview.CircleImageView
+        <ImageView
             android:id="@+id/user_regImage"
             android:layout_width="75dp"
             android:layout_height="75dp"
             android:layout_gravity="center"
             android:layout_marginTop="10dp"
+            android:src="@drawable/ic_person"
             android:visibility="visible"/>
 
         <com.google.android.material.textfield.TextInputLayout

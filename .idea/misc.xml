@@ -25,9 +25,11 @@
         <entry key="..\:/Samwaad/app/src/main/res/layout/activity_stories.xml" value="0.11987704918032786" />
         <entry key="..\:/Samwaad/app/src/main/res/layout/chat_item_left.xml" value="0.9" />
         <entry key="..\:/Samwaad/app/src/main/res/layout/chat_item_right.xml" value="0.38920454545454547" />
-        <entry key="..\:/Samwaad/app/src/main/res/layout/fragment_dashboard.xml" value="0.17" />
-        <entry key="..\:/Samwaad/app/src/main/res/layout/story_recyclerview_layout.xml" value="0.75" />
+        <entry key="..\:/Samwaad/app/src/main/res/layout/fragment_dashboard.xml" value="0.75" />
+        <entry key="..\:/Samwaad/app/src/main/res/layout/layout_register.xml" value="0.11168032786885246" />
+        <entry key="..\:/Samwaad/app/src/main/res/layout/story_recyclerview_layout.xml" value="0.16" />
         <entry key="..\:/Samwaad/app/src/main/res/layout/user_item.xml" value="0.4321167883211679" />
+        <entry key="..\:/Samwaad/app/src/main/res/layout/user_registrartion.xml" value="0.25" />
         <entry key="..\:/Samwaad/app/src/main/res/menu/bottom_nav_menu.xml" value="0.13243243243243244" />
         <entry key="..\:/Users/Devan/AndroidStudioProjects/Samwaad/app/src/main/res/layout/activity_main.xml" value="0.33" />
         <entry key="..\:/Users/Devan/AndroidStudioProjects/Samwaad/app/src/main/res/layout/contacts_item.xml" value="0.13243243243243244" />

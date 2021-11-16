@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.nfc.NfcAdapter;
@@ -25,11 +26,13 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -77,48 +80,27 @@ public class HomeFragment extends Fragment {
     EditText search_users;
 
     FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-
     private List<String> usersList;
+    SharedPreferences pref;
 
 
     public View onCreateView(@NonNull final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         homeViewModel = ViewModelProviders.of(this).get(HomeViewModel.class);
         View root = inflater.inflate(R.layout.fragment_home, container, false);
+
         AppBarLayout app_lay = root.findViewById(R.id.app_lay);
         app_lay.setOutlineProvider(null);
+        pref = getActivity().getSharedPreferences("setting",Context.MODE_PRIVATE);
         img_profile_home = root.findViewById(R.id.img_profile_home);
         Log.d("user_iddd",user.getUid());
-        /*firestore.collection("users").document(user.getUid())
-                .addSnapshotListener((value, error) -> {
-                    if(value!=null){
-                        if (value.exists()){
-                            Log.d("ImageURLLL",value.get("ImageURL").toString());
-                            if (value.get("ImageURL")!=null){
+        String img_url = pref.getString("image_url","image_url");
+        Glide.with(img_profile_home.getContext())
+                .load(img_url)
+                .placeholder(R.drawable.ic_person)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(img_profile_home);
 
-                                Glide.with(img_profile_home.getContext())
-                                        .load(value.get("ImageURL"))
-                                        .into(img_profile_home);
-                            } else{
-                                img_profile_home.setImageResource(R.drawable.ic_person);
-                            }
-                        }
-                    }
-                });*/
-
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users");
-        ref.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                User user = snapshot.getValue(User.class);
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
 
         recyclerView = root.findViewById(R.id.recycler_view);
         recyclerView.setHasFixedSize(true);

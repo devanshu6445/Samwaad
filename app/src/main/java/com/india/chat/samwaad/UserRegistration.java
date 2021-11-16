@@ -1,8 +1,10 @@
 package com.india.chat.samwaad;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -27,6 +29,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -80,14 +83,11 @@ public class UserRegistration extends AppCompatActivity implements AdapterView.O
 
 
         Objects.requireNonNull(getSupportActionBar()).hide();
-        regtv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("image/*");
-                startActivityForResult(intent, REQUEST_IMAGE);
-            }
+        user_regImage.setOnClickListener(v ->{
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("image/*");
+            startActivityForResult(intent, REQUEST_IMAGE);
         });
         user_register.setOnClickListener(v -> {
 
@@ -124,7 +124,7 @@ public class UserRegistration extends AppCompatActivity implements AdapterView.O
                         if (user!=null){
                             StorageReference reference = FirebaseStorage.getInstance().getReference().child(user.getUid())
                                     .child(uriRegImage.getLastPathSegment());
-                            putRegImage(reference,uriRegImage,user,name);
+                            putRegImage(reference,uriRegImage,user,name,user_mobile_number.getText().toString());
                         }
                     } else {
                         Toast.makeText(UserRegistration.this, "An unknown error has occured", Toast.LENGTH_LONG).show();
@@ -168,48 +168,60 @@ public class UserRegistration extends AppCompatActivity implements AdapterView.O
             }
         }
     }
+    private void profileSet(String name, String uri){
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user!=null){
+            UserProfileChangeRequest profileChangeRequest = new UserProfileChangeRequest.Builder()
+                    .setDisplayName(name)
+                    .setPhotoUri(Uri.parse(uri))
+                    .build();
+            user.updateProfile(profileChangeRequest);
+        }
+
+    }
     String imageURL;
-    private void putRegImage(StorageReference storageReference, Uri uri,FirebaseUser user,String name){
+    private void putRegImage(StorageReference storageReference, Uri uri,FirebaseUser user,String name,String number){
 
         storageReference.putFile(uri).addOnCompleteListener(UserRegistration.this,
-                new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            if (task.getResult()!=null){
-                                task.getResult().getMetadata().getReference().getDownloadUrl()
-                                        .addOnCompleteListener(UserRegistration.this,
-                                                new OnCompleteListener<Uri>() {
-                                                    @Override
-                                                    public void onComplete(@NonNull Task<Uri> task) {
-                                                        if (task.isSuccessful()) {
-                                                            imageURL = task.getResult().toString();
-                                                            Log.d("ImageUrrl",imageURL,task.getException());
-                                                            FirebaseFirestore user_db = FirebaseFirestore.getInstance();
-                                                            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("users");
-                                                            User information1;
-                                                            if (imageURL == null){
-                                                                information1 = new User(user.getUid(), name, null, "online",name.toLowerCase());
-                                                            } else {
-                                                                information1 = new User(user.getUid(), name, imageURL, "online",name.toLowerCase());
-                                                            }
-                                                            user_db.collection("users").document(user.getUid())
-                                                                    .set(information1)
-                                                                    .addOnSuccessListener(unused -> Log.d("firestore_db_success","Success")).addOnFailureListener(e -> Log.d("firestore_db_fail", "failed", e));
-                                                            databaseReference.child(user.getUid()).setValue(information1);
-
-
-                                                            Intent intent = new Intent(UserRegistration.this, MainActivity.class);
-                                                            startActivity(intent);
-                                                            Toast.makeText(UserRegistration.this, "Registration done correctly", Toast.LENGTH_LONG).show();
-                                                        }
+                task -> {
+                    if (task.isSuccessful()) {
+                        if (task.getResult()!=null){
+                            task.getResult().getMetadata().getReference().getDownloadUrl()
+                                    .addOnCompleteListener(UserRegistration.this,
+                                            task1 -> {
+                                                if (task1.isSuccessful()) {
+                                                    imageURL = task1.getResult().toString();
+                                                    Log.d("ImageUrrl",imageURL, task1.getException());
+                                                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+                                                    SharedPreferences.Editor editor = preferences.edit();
+                                                    editor.putString("uid",user.getUid());
+                                                    editor.putString("image_url",imageURL);
+                                                    editor.putString("name",name);
+                                                    editor.putString("number",number);
+                                                    editor.apply();
+                                                    FirebaseFirestore user_db = FirebaseFirestore.getInstance();
+                                                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("users");
+                                                    profileSet(name,imageURL);
+                                                    User information1;
+                                                    if (imageURL == null){
+                                                        information1 = new User(user.getUid(), name, null, "online",name.toLowerCase());
+                                                    } else {
+                                                        information1 = new User(user.getUid(), name, imageURL, "online",name.toLowerCase());
                                                     }
-                                                });
-                            }
-                        } else {
-                            Log.w("ImageUpload", "Image upload task was not successful.",
-                                    task.getException());
+                                                    user_db.collection("users").document(user.getUid())
+                                                            .set(information1)
+                                                            .addOnSuccessListener(unused -> Log.d("firestore_db_success","Success")).addOnFailureListener(e -> Log.d("firestore_db_fail", "failed", e));
+                                                    databaseReference.child(user.getUid()).setValue(information1);
+
+                                                    Intent intent = new Intent(UserRegistration.this, MainActivity.class);
+                                                    startActivity(intent);
+                                                    Toast.makeText(UserRegistration.this, "Registration done correctly", Toast.LENGTH_LONG).show();
+                                                }
+                                            });
                         }
+                    } else {
+                        Log.w("ImageUpload", "Image upload task was not successful.",
+                                task.getException());
                     }
                 });
     }
