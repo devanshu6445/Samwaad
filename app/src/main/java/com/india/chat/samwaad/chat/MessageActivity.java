@@ -1,5 +1,20 @@
 package com.india.chat.samwaad.chat;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.Window;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -7,57 +22,30 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Intent;
-
-import android.content.SharedPreferences;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-
-import android.preference.PreferenceManager;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
-
-import android.view.Window;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.TextView;
-import android.widget.Toast;
-
 import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
-
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-
 import com.india.chat.samwaad.Adapter.MessageAdapter;
 import com.india.chat.samwaad.MainActivity;
 import com.india.chat.samwaad.Model.Chat;
 import com.india.chat.samwaad.Model.User;
-
-
 import com.india.chat.samwaad.R;
-
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
-
-
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -95,7 +83,7 @@ public class MessageActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar1);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("");
+        Objects.requireNonNull(getSupportActionBar()).setTitle("");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         toolbar.setNavigationOnClickListener(v ->
                 startActivity(new Intent(MessageActivity.this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
@@ -137,12 +125,11 @@ public class MessageActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 status("Typing...");
             }
-            private Timer timer = new Timer();
 
             @Override
             public void afterTextChanged(Editable s) {
 
-                timer = new Timer();
+                Timer timer = new Timer();
                 long DELAY = 2000;
                 timer.schedule(new TimerTask() {
                     @Override
@@ -174,7 +161,7 @@ public class MessageActivity extends AppCompatActivity {
     }
 
     private void seenMessage(final String userid){
-        String myid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String myid = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
         reference = FirebaseDatabase.getInstance().getReference("Chats").child(myid+"_"+userid);
         databaseReference = FirebaseDatabase.getInstance().getReference("Chats").child(userid+"_"+myid);
         seenListener = reference.addValueEventListener(new ValueEventListener() {
@@ -243,34 +230,31 @@ public class MessageActivity extends AppCompatActivity {
         storageReference.putFile(uri).addOnCompleteListener(MessageActivity.this,
                 task -> {
                     if (task.isSuccessful()) {
-                        task.getResult().getMetadata().getReference().getDownloadUrl()
+                        Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(task.getResult()).getMetadata()).getReference()).getDownloadUrl()
                                 .addOnCompleteListener(MessageActivity.this,
-                                        new OnCompleteListener<Uri>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<Uri> task) {
-                                                if (task.isSuccessful()) {
-                                                    assert task.getResult() != null;
-                                                    intent = getIntent();
-                                                    final String receiver = intent.getStringExtra("user_id");
-                                                    String sender = fuser.getUid();
+                                        task1 -> {
+                                            if (task1.isSuccessful()) {
+                                                assert task1.getResult() != null;
+                                                intent = getIntent();
+                                                final String receiver = intent.getStringExtra("user_id");
+                                                String sender = fuser.getUid();
 
-                                                    Date date = new Date();
-                                                    String ts = Long.toString(date.getTime());
-                                                    DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
-                                                    HashMap<String, Object> hashMap = new HashMap<>();
-                                                    hashMap.put("sender", sender);
-                                                    hashMap.put("receiver", receiver);
-                                                    hashMap.put("message", null);
-                                                    hashMap.put("timestamp", ServerValue.TIMESTAMP);
-                                                    hashMap.put("unique_id", ts);
-                                                    hashMap.put("imageUrl", task.getResult().toString());
-                                                    hashMap.put("isseen", false);
+                                                Date date = new Date();
+                                                String ts = Long.toString(date.getTime());
+                                                DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+                                                HashMap<String, Object> hashMap = new HashMap<>();
+                                                hashMap.put("sender", sender);
+                                                hashMap.put("receiver", receiver);
+                                                hashMap.put("message", null);
+                                                hashMap.put("timestamp", ServerValue.TIMESTAMP);
+                                                hashMap.put("unique_id", ts);
+                                                hashMap.put("imageUrl", task1.getResult().toString());
+                                                hashMap.put("isseen", false);
 
-                                                    Log.d("ImageURL", task.getResult().toString(), task.getException());
+                                                Log.d("ImageURL", task1.getResult().toString(), task1.getException());
 
-                                                    reference.child("Chats").child(sender+"_"+receiver).child(ts).setValue(hashMap);
-                                                    reference.child("Chats").child(receiver+"_"+sender).child(ts).setValue(hashMap);
-                                                }
+                                                reference.child("Chats").child(sender+"_"+receiver).child(ts).setValue(hashMap);
+                                                reference.child("Chats").child(receiver+"_"+sender).child(ts).setValue(hashMap);
                                             }
                                         });
                     } else {
@@ -348,24 +332,28 @@ public class MessageActivity extends AppCompatActivity {
         String userid = intent.getStringExtra("user_id");
         username = findViewById(R.id.username1);
         status_dynamic = findViewById(R.id.status_dynamic);
-        reference = FirebaseDatabase.getInstance().getReference("users").child(userid);
-        reference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                User user = snapshot.getValue(User.class);
-                assert user != null;
-                username.setText(user.getUsername());
-                Log.d("username_11",user.getUsername());
-                Glide.with(getApplicationContext()).load(user.getImageURL()).into(profile_image);
+        if (userid!=null){
+            reference = FirebaseDatabase.getInstance().getReference("users").child(userid);
+            reference.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    User user = snapshot.getValue(User.class);
+                    assert user != null;
+                    username.setText(user.getUsername());
+                    Log.d("username_11",user.getUsername());
+                    Glide.with(getApplicationContext()).load(user.getImageURL()).into(profile_image);
 
-                status_dynamic.setText(user.getStatus());
-            }
+                    status_dynamic.setText(user.getStatus());
+                }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
 
-            }
-        });Log.d("userid",userid);
+                }
+            });
+        } else {
+            Log.e("user_id_null","null");
+        }
         status("online");
     }
 

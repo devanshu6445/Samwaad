@@ -1,11 +1,9 @@
 package com.india.chat.samwaad;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -15,17 +13,11 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -101,29 +93,27 @@ public class login_to_samwaad extends AppCompatActivity {
                                 view1.setVisibility(View.GONE);
                                 FirebaseUser user1 = FirebaseAuth.getInstance().getCurrentUser();
 
-                                Log.d("Working", user1.getUid());
+
                                 if (user1!=null){
                                     DocumentReference reference = FirebaseFirestore.getInstance()
                                             .collection("users")
                                             .document(user1.getUid());
                                     reference.get()
-                                            .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                                @Override
-                                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                                    if (task.isSuccessful()){
-                                                        DocumentSnapshot snapshot = task.getResult();
-                                                        String name = snapshot.get("name").toString();
-                                                        String imageURL = snapshot.get("ImageURL").toString();
-                                                        String number = snapshot.get("phoneNumber").toString();
-                                                        Toast.makeText(login_to_samwaad.this, name, Toast.LENGTH_SHORT).show();
-                                                        SharedPreferences preferences = getSharedPreferences("setting",MODE_PRIVATE);
-                                                        SharedPreferences.Editor editor = preferences.edit();
-                                                        editor.putString("uid",user1.getUid());
-                                                        editor.putString("image_url",imageURL);
-                                                        editor.putString("name",name);
-                                                        editor.putString("number",number);
-                                                        editor.apply();
-                                                    }
+                                            .addOnCompleteListener(task1 -> {
+                                                if (task1.isSuccessful()){
+                                                    DocumentSnapshot snapshot = task1.getResult();
+                                                    assert snapshot != null;
+                                                    String name = Objects.requireNonNull(snapshot.get("name")).toString();
+                                                    String imageURL = Objects.requireNonNull(snapshot.get("ImageURL")).toString();
+                                                    String number = Objects.requireNonNull(snapshot.get("phoneNumber")).toString();
+                                                    Toast.makeText(login_to_samwaad.this, name, Toast.LENGTH_SHORT).show();
+                                                    SharedPreferences preferences = getSharedPreferences("setting",MODE_PRIVATE);
+                                                    SharedPreferences.Editor editor = preferences.edit();
+                                                    editor.putString("uid",user1.getUid());
+                                                    editor.putString("image_url",imageURL);
+                                                    editor.putString("name",name);
+                                                    editor.putString("number",number);
+                                                    editor.apply();
                                                 }
                                             });
 
