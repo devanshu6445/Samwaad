@@ -2,19 +2,13 @@ package com.india.chat.samwaad.Adapter;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Build;
-import android.provider.ContactsContract;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -24,7 +18,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.crashlytics.internal.model.CrashlyticsReport;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -32,12 +25,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.india.chat.samwaad.Model.Chat;
 import com.india.chat.samwaad.Model.User;
-import com.india.chat.samwaad.Notifications.Data;
 import com.india.chat.samwaad.R;
 import com.india.chat.samwaad.chat.MessageActivity;
-import com.india.chat.samwaad.user.ChangePassword;
 
-import java.security.Timestamp;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -46,7 +36,6 @@ import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 

@@ -11,8 +11,6 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
-import com.india.chat.samwaad.BuildConfig;
-
 public class OreoAndAboveNotification extends ContextWrapper {
 
     private static final String ID = "some_id";

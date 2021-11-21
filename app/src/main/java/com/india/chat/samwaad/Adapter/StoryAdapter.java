@@ -18,17 +18,12 @@ import com.india.chat.samwaad.Model.StoryMember;
 import com.india.chat.samwaad.R;
 import com.india.chat.samwaad.StoriesActivity;
 
-import org.w3c.dom.Text;
-
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-import xute.storyview.StoryModel;
-import xute.storyview.StoryView;
 
 public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 

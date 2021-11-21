@@ -1,14 +1,19 @@
 package com.india.chat.samwaad.chat;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.media.AudioAttributes;
+import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -19,10 +24,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -39,6 +47,8 @@ import com.india.chat.samwaad.Model.Chat;
 import com.india.chat.samwaad.Model.User;
 import com.india.chat.samwaad.R;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -52,6 +62,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MessageActivity extends AppCompatActivity {
 
+    private static final int REQUEST_AUDIO = 4;
     CircleImageView profile_image;
     TextView username;
 
@@ -70,12 +81,14 @@ public class MessageActivity extends AppCompatActivity {
     Intent intent;
 
     ImageButton btn_cam;
+    ImageButton btn_record;
 
     private static  final int REQUEST_IMAGE = 2;
 
     ValueEventListener seenListener,SeenListener1;
 
 
+    @SuppressLint({"ClickableViewAccessibility", "ObsoleteSdkInt"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,6 +105,7 @@ public class MessageActivity extends AppCompatActivity {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
             window.setStatusBarColor(getResources().getColor(R.color.emerald));
         }
+        final MediaRecorder recorder = new MediaRecorder();
 
         intent = getIntent();
         final String userid = intent.getStringExtra("user_id");
@@ -106,7 +120,68 @@ public class MessageActivity extends AppCompatActivity {
         btn_send = findViewById(R.id.btn_send);
         text_send = findViewById(R.id.text_send);
         status_dynamic = findViewById(R.id.status_dynamic);
+        btn_record = findViewById(R.id.btn_record);
+        if (ContextCompat.checkSelfPermission(MessageActivity.this,Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED){
+            String audio_path = "/storage/emulated/0/Samwaad/Audio/" + "Audio_" + System.currentTimeMillis() + ".mp4";
+            recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+            recorder.setOutputFile(audio_path);
+            try {
+                recorder.prepare();
+
+                btn_record.setOnTouchListener((view, motionEvent) -> {
+
+                    switch (motionEvent.getAction()) {
+
+                        case MotionEvent.ACTION_DOWN:
+                            if (ContextCompat.checkSelfPermission(MessageActivity.this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                                Toast.makeText(this, "Hold to record audio", Toast.LENGTH_SHORT).show();
+                                recorder.start();
+                            } else {
+                                ActivityCompat.requestPermissions(MessageActivity.this, new String[]{Manifest.permission.RECORD_AUDIO}, 5);
+                            }
+
+//            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+//            intent.addCategory(Intent.CATEGORY_OPENABLE);
+//            intent.setType("*/*");
+//            startActivityForResult(intent,REQUEST_AUDIO);
+                            return false;
+                        case MotionEvent.ACTION_UP:
+                            recorder.stop();
+                            recorder.reset();
+                            recorder.release();
+                            Uri uri = Uri.fromFile(new File(audio_path));
+                            MediaPlayer mediaPlayer = new MediaPlayer();
+                            mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
+                                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                                    .build());
+                            try {
+                                mediaPlayer.setDataSource(getApplicationContext(), uri);
+                                mediaPlayer.prepare();
+                                mediaPlayer.start();
+                            } catch (IOException e) {
+                                Log.e("MediaPlayIO", "Error IO", e);
+                            }
+                            return false;
+                    }
+                    return false;
+                });
+            } catch (IOException e) {
+                Log.e("ErrorIO", "IO Error Occurred", e);
+            } catch (IllegalStateException illegalStateException) {
+                Log.e("IllegalState", "ErrorState", illegalStateException);
+            }
+        } else{
+            ActivityCompat.requestPermissions(MessageActivity.this, new String[]{Manifest.permission.RECORD_AUDIO}, 5);
+
+        }
         btn_cam = findViewById(R.id.btn_cam);
+        if (ContextCompat.checkSelfPermission(MessageActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)== PackageManager.PERMISSION_DENIED){
+            ActivityCompat.requestPermissions(MessageActivity.this,new String[]
+                    {Manifest.permission.WRITE_EXTERNAL_STORAGE},2);
+        }
 
         btn_cam.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -160,10 +235,20 @@ public class MessageActivity extends AppCompatActivity {
         seenMessage(userid);
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        //checking which permission is granted
+        if (requestCode==2 || requestCode==5){
+            Toast.makeText(MessageActivity.this, "Granted", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void seenMessage(final String userid){
         String myid = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
         reference = FirebaseDatabase.getInstance().getReference("Chats").child(myid+"_"+userid);
         databaseReference = FirebaseDatabase.getInstance().getReference("Chats").child(userid+"_"+myid);
+        //updating message isseen field in database to true for (sender_id + receiver_id) node
         seenListener = reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -184,9 +269,10 @@ public class MessageActivity extends AppCompatActivity {
 
             }
         });
-
+        //updating message isseen field in database to true for (receiver_id + sender_id) node
         SeenListener1 = databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
+
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for ( DataSnapshot snapshot : dataSnapshot.getChildren()){
                     Chat chat = snapshot.getValue(Chat.class);
@@ -202,7 +288,7 @@ public class MessageActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-
+                Log.e("seenError",error.getDetails(),error.toException());
             }
         });
     }
@@ -212,28 +298,79 @@ public class MessageActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE){
             if(resultCode == RESULT_OK){
+                //getting data from uri is data is not null
                 if (data!=null){
                     final Uri uri = data.getData();
                     Log.d("uri image", "Uri: " + uri.toString());
                     StorageReference reference = FirebaseStorage.getInstance().getReference().child(fuser.getUid())
-                            .child(uri.getLastPathSegment());
+                            .child(fuser.getUid()+"_"+System.currentTimeMillis());
+                    //uploading image to storage
                     putImageInStorage(reference, uri);
+                }
+            }
+        } else if (requestCode==REQUEST_AUDIO){
+            if (resultCode==RESULT_OK){
+                if (data!=null){
+                    Uri uri = data.getData();
+                    MediaPlayer mediaPlayer = new MediaPlayer();
+                    mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .setUsage(AudioAttributes.USAGE_MEDIA)
+                            .build());
+                    try {
+                        mediaPlayer.setDataSource(getApplicationContext(),uri);
+                        mediaPlayer.prepare();
+                        mediaPlayer.start();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private void putImageInStorage(@NonNull StorageReference storageReference, Uri uri) {
 
         fuser = FirebaseAuth.getInstance().getCurrentUser();
-
+        //uploading image to firebase storage using uri
         storageReference.putFile(uri).addOnCompleteListener(MessageActivity.this,
                 task -> {
                     if (task.isSuccessful()) {
+                        //getting download url from upload task
                         Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(task.getResult()).getMetadata()).getReference()).getDownloadUrl()
                                 .addOnCompleteListener(MessageActivity.this,
                                         task1 -> {
+
                                             if (task1.isSuccessful()) {
+                                                //creating reference to internal storage for storing message image
+                                                StorageReference reference1 = FirebaseStorage.getInstance().getReferenceFromUrl(Objects.requireNonNull(task1.getResult()).toString());
+                                                File localFile = new File("/storage/emulated/0/Samwaad/Photos/"+fuser.getUid()+"/");
+                                                //creating path if doesn't exist
+                                                if (!localFile.exists()){
+                                                    //noinspection ResultOfMethodCallIgnored
+                                                    localFile.mkdirs();
+                                                }
+                                                File root_file = new File("/storage/emulated/0/Samwaad/Photos/"+fuser.getUid()+"/"+reference1.getName()+".jpg");
+                                                try {
+                                                    //noinspection ResultOfMethodCallIgnored
+                                                    root_file.createNewFile();
+                                                    Log.d("fileCPath", root_file.getPath());
+                                                    Log.d("fileCreated",localFile.getPath());
+                                                    //downloading image from firebase storage
+                                                    reference1.getFile(root_file)
+                                                            .addOnCompleteListener(task2 -> {
+                                                                if (task2.isSuccessful()){
+                                                                    Log.i("DownloadTask","Successful");
+                                                                } else{
+                                                                    Log.e("ErrorTask","Error Occurred",task2.getException());
+                                                                }
+                                                            });
+                                                } catch(IOException e){
+                                                    e.printStackTrace();
+                                                }
+//                                                ---------------------------------------
+                                                //uploading message relevant information to database
                                                 assert task1.getResult() != null;
                                                 intent = getIntent();
                                                 final String receiver = intent.getStringExtra("user_id");
@@ -255,11 +392,11 @@ public class MessageActivity extends AppCompatActivity {
 
                                                 reference.child("Chats").child(sender+"_"+receiver).child(ts).setValue(hashMap);
                                                 reference.child("Chats").child(receiver+"_"+sender).child(ts).setValue(hashMap);
+
                                             }
                                         });
                     } else {
-                        Log.w("ImageUpload", "Image upload task was not successful.",
-                                task.getException());
+                        Log.e("ImageUpload", "Image upload task was not successful.", task.getException());
                     }
                 });
     }
@@ -269,6 +406,7 @@ public class MessageActivity extends AppCompatActivity {
         Date date = new Date();
         String ts = Long.toString(date.getTime());
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+        //HashMap object for storing message and relevant information
         HashMap<String, Object> hashMap = new HashMap<>();
         hashMap.put("sender", sender);
         hashMap.put("receiver", receiver);
@@ -281,7 +419,7 @@ public class MessageActivity extends AppCompatActivity {
         reference.child("Chats").child(receiver+"_"+sender).child(ts).setValue(hashMap);
 
     }
-
+    //Reading messages
     private void readMessages(final String myid, final String userid){
         mChat = new ArrayList<>();
         reference = FirebaseDatabase.getInstance().getReference("Chats").child(myid+"_"+userid);
@@ -293,20 +431,24 @@ public class MessageActivity extends AppCompatActivity {
                 for(DataSnapshot snapshot : dataSnapshot.getChildren()){
                     Chat chat = snapshot.getValue(Chat.class);
                     assert chat != null;
+                   //checking if the message belongs to sender and receiver
                     if(chat.getReceiver().equals(myid) && chat.getSender().equals(userid) ||
                             chat.getReceiver().equals(userid) && chat.getSender().equals(myid)){
+                        //adding chat object to chat list
                         mChat.add(chat);
                     }
-
-                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                    String pref = preferences.getString("upload_status","Nothing");
-
-                    if (chat.getImageUrl()==null){
-                        messageAdapter = new MessageAdapter(MessageActivity.this, mChat);
-                    } else if (chat.getImageUrl()!=null){
-                        messageAdapter = new MessageAdapter(MessageActivity.this, mChat,pref);
-                    }
-
+                    //initialising message adapter and passing context and chat list
+                    messageAdapter = new MessageAdapter(MessageActivity.this, mChat);
+//                    if (chat.getImageUrl()==null){
+//                        if (first) {
+//
+//                        } else{
+//
+//                        }
+//                    } else if (chat.getImageUrl()!=null){
+//                        messageAdapter = new MessageAdapter(MessageActivity.this, mChat);
+//                    }
+                    //passing adapter to recycler view
                     recyclerView.setAdapter(messageAdapter);
 
                 }
@@ -318,6 +460,7 @@ public class MessageActivity extends AppCompatActivity {
             }
         });
     }
+    //method for updating status of logged-in user
     private void status(String status){
         fuser = FirebaseAuth.getInstance().getCurrentUser();
         reference = FirebaseDatabase.getInstance().getReference("users").child(fuser.getUid());
@@ -333,22 +476,30 @@ public class MessageActivity extends AppCompatActivity {
         username = findViewById(R.id.username1);
         status_dynamic = findViewById(R.id.status_dynamic);
         if (userid!=null){
+            //initialising database reference to user/(receiver)userid node
             reference = FirebaseDatabase.getInstance().getReference("users").child(userid);
+            //adding snapshot listener
             reference.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    //getting value from snapshot
                     User user = snapshot.getValue(User.class);
                     assert user != null;
+                    //passing receiver name to username TextView
                     username.setText(user.getUsername());
                     Log.d("username_11",user.getUsername());
-                    Glide.with(getApplicationContext()).load(user.getImageURL()).into(profile_image);
-
+                    //Loading image in profile_image ImageView
+                    Glide.with(getApplicationContext())
+                            .load(user.getImageURL())
+                            .apply(new RequestOptions().error(R.drawable.ic_person))
+                            .into(profile_image);
+                    //passing receiver (online/offline/typing)status to status_dynamic TextView
                     status_dynamic.setText(user.getStatus());
                 }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
-
+                    Log.e("MessageResumeDataError",error.getDetails());
                 }
             });
         } else {

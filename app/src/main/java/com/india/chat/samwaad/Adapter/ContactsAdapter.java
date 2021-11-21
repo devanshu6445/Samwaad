@@ -2,7 +2,6 @@ package com.india.chat.samwaad.Adapter;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,25 +13,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.india.chat.samwaad.Model.Contacts;
 import com.india.chat.samwaad.R;
 import com.india.chat.samwaad.chat.MessageActivity;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 

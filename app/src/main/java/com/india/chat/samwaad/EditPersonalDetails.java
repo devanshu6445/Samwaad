@@ -1,8 +1,8 @@
 package com.india.chat.samwaad;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class EditPersonalDetails extends AppCompatActivity {
 

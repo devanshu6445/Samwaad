@@ -1,7 +1,6 @@
 package com.india.chat.samwaad.ui.notifications;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -12,14 +11,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-
 import androidx.annotation.NonNull;
-
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-
-import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -32,7 +26,6 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.india.chat.samwaad.Adapter.ContactsAdapter;
 import com.india.chat.samwaad.Model.Contacts;
-import com.india.chat.samwaad.Model.User;
 import com.india.chat.samwaad.R;
 
 import org.json.JSONException;

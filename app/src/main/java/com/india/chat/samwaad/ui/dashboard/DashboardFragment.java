@@ -35,6 +35,7 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageException;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.india.chat.samwaad.Adapter.StoryAdapter;
@@ -88,17 +89,21 @@ public class DashboardFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 usersList.clear();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()){
-                    for (DataSnapshot snapshot1 : snapshot.getChildren()){
-                        Chat chat = snapshot1.getValue(Chat.class);
+                try {
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        for (DataSnapshot snapshot1 : snapshot.getChildren()) {
+                            Chat chat = snapshot1.getValue(Chat.class);
 
-                        if (chat.getSender().equals(fuser.getUid())){
-                            usersList.add(chat.getReceiver());
-                        }
-                        if (chat.getReceiver().equals(fuser.getUid())){
-                            usersList.add(chat.getSender());
+                            if (chat.getSender().equals(fuser.getUid())) {
+                                usersList.add(chat.getReceiver());
+                            }
+                            if (chat.getReceiver().equals(fuser.getUid())) {
+                                usersList.add(chat.getSender());
+                            }
                         }
                     }
+                } catch (NullPointerException e){
+                    e.printStackTrace();
                 }
                 readUsers();
             }
@@ -133,7 +138,8 @@ public class DashboardFragment extends Fragment {
     }
     private void putImagetoStorage(Uri uri,StorageReference reference, String type){
 
-        reference.putFile(uri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+        try {
+            reference.putFile(uri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
                 if (task.isSuccessful()){
@@ -148,6 +154,10 @@ public class DashboardFragment extends Fragment {
                 }
             }
         });
+        } catch(NullPointerException e){
+            e.printStackTrace();
+            Log.d("UploadNull",e.toString());
+        }
     }
     private void addStory(String posturl,String type){
         try {
@@ -176,28 +186,32 @@ public class DashboardFragment extends Fragment {
                     .collection(user.getId());
             Log.d("userid",user.getId());
             Query query = reference.whereEqualTo("uid",user.getId());
-            query.addSnapshotListener(new EventListener<QuerySnapshot>() {
-                @Override
-                public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
-                    int i=0;
-                    assert value != null;
-                    for (QueryDocumentSnapshot queryDocumentSnapshot : value){
-                        if (i==0){
-                            String name = queryDocumentSnapshot.get("name").toString();
-                            String uid = queryDocumentSnapshot.get("uid").toString();
-                            String postUri = queryDocumentSnapshot.get("postUri").toString();
-                            String timeEnd = queryDocumentSnapshot.get("timeEnd").toString();
-                            String timeUpload = queryDocumentSnapshot.get("timeUpload").toString();
-                            StoryMember storyMember = new StoryMember(postUri,name,timeEnd,timeUpload,null,uid);
+            query.addSnapshotListener((value, error) -> {
+
+                int i=0;
+                assert value != null;
+                try {
+                    for (QueryDocumentSnapshot queryDocumentSnapshot : value) {
+                        if (i == 0) {
+                            String name = Objects.requireNonNull(queryDocumentSnapshot.get("name")).toString();
+                            String uid = Objects.requireNonNull(queryDocumentSnapshot.get("uid")).toString();
+                            String postUri = Objects.requireNonNull(queryDocumentSnapshot.get("postUri")).toString();
+                            String timeEnd = Objects.requireNonNull(queryDocumentSnapshot.get("timeEnd")).toString();
+                            String timeUpload = Objects.requireNonNull(queryDocumentSnapshot.get("timeUpload")).toString();
+                            StoryMember storyMember = new StoryMember(postUri, name, timeEnd, timeUpload, null, uid);
                             memberList.add(storyMember);
                             i++;
                         }
-                        break;
+                        if (i==1){
+                            break;
+                        }
                     }
-
-                    storyAdapter = new StoryAdapter(getContext(),memberList,value);
-                    recyclerView_story.setAdapter(storyAdapter);
+                } catch(NullPointerException e){
+                    e.printStackTrace();
                 }
+
+                storyAdapter = new StoryAdapter(getContext(),memberList,value);
+                recyclerView_story.setAdapter(storyAdapter);
             });
         }
     }
@@ -210,27 +224,29 @@ public class DashboardFragment extends Fragment {
         Query query = searchRef.whereGreaterThanOrEqualTo("phoneNumber",toString)
                 .whereLessThanOrEqualTo("phoneNumber",toString+'\uf8ff');
         query.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()){
-                Log.d("Sucess12","success");
-                for (QueryDocumentSnapshot documentSnapshot : Objects.requireNonNull(task.getResult())){
-                    String id = Objects.requireNonNull(documentSnapshot.get("Id")).toString();
-                    String name = Objects.requireNonNull(Objects.requireNonNull(documentSnapshot.get("name")).toString());
-                    String phone_number = Objects.requireNonNull(Objects.requireNonNull(documentSnapshot.get("phoneNumber")).toString());
-                    Log.d("ID_DD",id);
-                    String ImageUrl;
-                    if (documentSnapshot.get("ImageURL").toString()==null){
-                        ImageUrl = null;
-                    } else {
-                        ImageUrl = Objects.requireNonNull(Objects.requireNonNull(documentSnapshot.get("ImageURL")).toString());
+            if (task.isSuccessful()) {
+                Log.d("Sucess12", "success");
+                try {
+                    for (QueryDocumentSnapshot documentSnapshot : Objects.requireNonNull(task.getResult())) {
+                        String id = Objects.requireNonNull(documentSnapshot.get("Id")).toString();
+                        String name = Objects.requireNonNull(Objects.requireNonNull(documentSnapshot.get("name")).toString());
+                        String phone_number = Objects.requireNonNull(Objects.requireNonNull(documentSnapshot.get("phoneNumber")).toString());
+                        Log.d("ID_DD", id);
+                        String ImageUrl;
+                        if (Objects.requireNonNull(documentSnapshot.get("ImageURL")).toString() == null) {
+                            ImageUrl = null;
+                        } else {
+                            ImageUrl = Objects.requireNonNull(Objects.requireNonNull(documentSnapshot.get("ImageURL")).toString());
 
+                        }
+                        Contacts contacts1 = new Contacts(name, phone_number, ImageUrl, id);
+                        refCont.add(contacts1);
+                        Log.d("successId", String.valueOf(refCont.size()));
                     }
-                    Contacts contacts1 = new Contacts(name, phone_number,ImageUrl,id);
-                    refCont.add(contacts1);
-                    Log.d("successId", String.valueOf(refCont.size()));
+                    Log.d("successId3", String.valueOf(refCont.size()));
+                } catch(NullPointerException e){
+                    e.printStackTrace();
                 }
-                Log.d("successId3",String.valueOf(refCont.size()));
-
-
             }
         });
     }
@@ -244,7 +260,6 @@ public class DashboardFragment extends Fragment {
                     reference.addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            long count = dataSnapshot.getChildrenCount();
                             for (DataSnapshot snapshot : dataSnapshot.getChildren()){
                                 String name = snapshot.child("name").getValue(String.class);
                                 String uid = snapshot.child("uid").getValue(String.class);

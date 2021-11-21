@@ -1,8 +1,9 @@
 package com.india.chat.samwaad.chat;
 
+import android.os.Bundle;
+
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.os.Bundle;
 import com.india.chat.samwaad.R;
 
 public class ChatActivity extends AppCompatActivity {
