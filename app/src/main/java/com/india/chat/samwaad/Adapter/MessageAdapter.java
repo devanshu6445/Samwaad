@@ -2,12 +2,16 @@ package com.india.chat.samwaad.Adapter;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.media.AudioAttributes;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.MediaController;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,17 +22,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.Priority;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
-import com.google.android.gms.tasks.OnCanceledListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.india.chat.samwaad.Model.Chat;
 import com.india.chat.samwaad.R;
@@ -104,10 +104,15 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         public TextView txt_seen_send;
         public TextView txt_seen_msg_send;
         public View roundView_send;
+        public View media;
+        public Button start;
+        public Button pause;
 
         public ViewHolderSend(View itemView) {
             super(itemView);
-
+            media = itemView.findViewById(R.id.media);
+            start = itemView.findViewById(R.id.start);
+            pause = itemView.findViewById(R.id.pause);
             txt_seen_msg_send = itemView.findViewById(R.id.text_seen_msg_send);
             show_messages_send = itemView.findViewById(R.id.show_message_send);
             txt_seen_send = itemView.findViewById(R.id.text_seen_send);
@@ -190,6 +195,9 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             viewHolderSend.show_messages_send.setText(chat.getMessage());
             viewHolderSend.MessageImageView_send.setVisibility(View.GONE);
             viewHolderSend.roundView_send.setVisibility(View.GONE);
+            viewHolderSend.media.setVisibility(View.GONE);
+            viewHolderSend.start.setVisibility(View.GONE);
+            viewHolderSend.pause.setVisibility(View.GONE);
             viewHolderSend.show_messages_send.setOnClickListener(v ->
             {
                 Toast.makeText(mContext, "Okay", Toast.LENGTH_SHORT).show();
@@ -243,8 +251,16 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             } else {
             loadImage(viewHolderSend.MessageImageView_send, chat.getImageUrl(), chat.getSender());
             viewHolderSend.show_messages_send.setVisibility(View.GONE);
+            viewHolderSend.media.setVisibility(View.GONE);
+            viewHolderSend.start.setVisibility(View.GONE);
+            viewHolderSend.pause.setVisibility(View.GONE);
         }
-    }
+    } else if (chat.getAudioUrl()!=null){
+            audioSend(viewHolderSend.media, viewHolderSend.start, viewHolderSend.pause, chat.getAudioUrl());
+            viewHolderSend.MessageImageView_send.setVisibility(View.GONE);
+            viewHolderSend.roundView_send.setVisibility(View.GONE);
+            viewHolderSend.show_messages_send.setVisibility(View.GONE);
+        }
         if (position == mChat.size()-1){
             try {
                 if (chat.getMessage()!=null){
@@ -383,7 +399,42 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
     }
 
-    void loadImage(ImageView imgView,String imageUrl,String folder){
+    private void audioSend(View view, Button start,Button pause,String url){
+
+        StorageReference reference = FirebaseStorage.getInstance().getReferenceFromUrl(url);
+        String path = "/storage/emulated/0/Samwaad/Audio/" + reference.getName() +".mp4";
+        android.net.Uri uri = android.net.Uri.fromFile(new File(path));
+        Log.d("FilePathC",new File(path).getAbsolutePath());
+        Log.d("UriPath",uri.toString());
+        MediaPlayer mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
+            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+            .setUsage(AudioAttributes.USAGE_MEDIA)
+            .build());
+        try {
+            mediaPlayer.setDataSource(mContext,uri);
+            mediaPlayer.prepare();
+
+
+            start.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    mediaPlayer.start();
+                }
+            });
+            pause.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    mediaPlayer.pause();
+                }
+            });
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("IOMedia","error",e);
+        }
+    }
+    private void loadImage(ImageView imgView,String imageUrl,String folder){
         StorageReference reference = FirebaseStorage.getInstance().getReferenceFromUrl(imageUrl);
         File localFile = new File("/storage/emulated/0/Samwaad/Photos/"+folder+"/");
         if (!localFile.exists()){

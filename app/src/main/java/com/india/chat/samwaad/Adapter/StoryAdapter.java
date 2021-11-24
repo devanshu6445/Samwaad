@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -64,11 +65,12 @@ public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         long timeCreated = Long.parseLong(storyMember.getTimeUpload());
         long currentTime = System.currentTimeMillis();
         long difference = currentTime-timeCreated;
-        if (difference<=3600){
-            int minutes = (int)difference/60;
-            String time = minutes +"minutes";
+        if (difference<=3600000){
+            Log.i("StoryTime",String.valueOf(difference));
+            int minutes = (int)difference/60000;
+            String time = minutes +" minutes ago";
             viewHolder.storyCreatedTime.setText(time);
-        } else if(difference<=86400){
+        } else if(difference<=86400000){
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(timeCreated);
             Date d = c.getTime();
@@ -76,12 +78,11 @@ public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             String time1 = simpleDateFormat.format(d);
             viewHolder.storyCreatedTime.setText(time1);
         } else{
-            Calendar c = Calendar.getInstance();
-            c.setTimeInMillis(timeCreated);
-            Date d = c.getTime();
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
-            String time1 = simpleDateFormat.format(d);
-            viewHolder.storyCreatedTime.setText(time1);
+            Log.d("storyNotFound",String.valueOf(difference));
+            viewHolder.storyCreatedTime.setVisibility(View.GONE);
+            viewHolder.name_user.setVisibility(View.GONE);
+            viewHolder.storyImageView.setVisibility(View.GONE);
+            viewHolder.storyView.setVisibility(View.GONE);
         }
 
 
@@ -91,25 +92,39 @@ public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         viewHolder.name_user.setText(storyMember.getName());
 
         viewHolder.storyView.setOnClickListener(view -> {
-            int i=0;
+            loadStory(value);
+        });
+    }
 
-            for (QueryDocumentSnapshot snap : value){
-                i++;
-            }
-            int j=i-1;
-            String[] urls = new String[i];
-            for(QueryDocumentSnapshot snapshot : value){
-                String url = snapshot.get("postUri").toString();
-                if (j>=0){
+    private void loadStory(QuerySnapshot value){
+        int i=0;
+
+        for (QueryDocumentSnapshot snap : value){
+            i++;
+        }
+        int j=0;
+        String[] urls = new String[i];
+        for(QueryDocumentSnapshot snapshot : value){
+            String url = snapshot.get("postUri").toString();
+            Log.i("urlStory",url);
+            long timeEnd = Long.parseLong(snapshot.get("timeEnd").toString());
+            Log.i("timeEnd",String.valueOf(timeEnd));
+            Log.i("currentTime",String.valueOf(System.currentTimeMillis()));
+            if (timeEnd>System.currentTimeMillis()) {
+                if (j <= i-1) {
                     urls[j] = url;
                 }
-                Log.d("postUrl",urls[j]);
-                j--;
+                Log.d("postUrl", urls[j]);
+                j++;
             }
-            Intent intent = new Intent(context, StoriesActivity.class);
-            intent.putExtra("array",urls);
-            context.startActivity(intent);
-        });
+        }
+        for(String url:urls){
+            Log.d("urlCon",url);
+            Toast.makeText(context, url, Toast.LENGTH_SHORT).show();
+        }
+        Intent intent = new Intent(context, StoriesActivity.class);
+        intent.putExtra("array",urls);
+        context.startActivity(intent);
     }
 
     @Override

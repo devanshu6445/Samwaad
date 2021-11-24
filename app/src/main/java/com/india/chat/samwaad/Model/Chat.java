@@ -9,8 +9,9 @@ public class Chat {
     private String unique_id;
     private boolean isseen;
     private String imageUrl;
+    private String audioUrl;
 
-    public Chat(String sender, String receiver, String message, long timestamp, String unique_id, boolean isseen, String imageUrl) {
+    public Chat(String sender, String receiver, String message, long timestamp, String unique_id, boolean isseen, String imageUrl,String audioUrl) {
         this.sender = sender;
         this.receiver = receiver;
         this.message = message;
@@ -18,9 +19,18 @@ public class Chat {
         this.unique_id = unique_id;
         this.isseen = isseen;
         this.imageUrl = imageUrl;
+        this.audioUrl = audioUrl;
     }
 
     public Chat() {
+    }
+
+    public String getAudioUrl() {
+        return audioUrl;
+    }
+
+    public void setAudioUrl(String audioUrl) {
+        this.audioUrl = audioUrl;
     }
 
     public String getImageUrl() {

@@ -31,6 +31,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -122,7 +123,8 @@ public class MessageActivity extends AppCompatActivity {
         status_dynamic = findViewById(R.id.status_dynamic);
         btn_record = findViewById(R.id.btn_record);
         if (ContextCompat.checkSelfPermission(MessageActivity.this,Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED){
-            String audio_path = "/storage/emulated/0/Samwaad/Audio/" + "Audio_" + System.currentTimeMillis() + ".mp4";
+            String file_name = "Audio_"+System.currentTimeMillis();
+            String audio_path = "/storage/emulated/0/Samwaad/Audio/" + file_name + ".mp4";
             recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
             recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
@@ -152,18 +154,21 @@ public class MessageActivity extends AppCompatActivity {
                             recorder.reset();
                             recorder.release();
                             Uri uri = Uri.fromFile(new File(audio_path));
-                            MediaPlayer mediaPlayer = new MediaPlayer();
-                            mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
-                                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                                    .build());
-                            try {
-                                mediaPlayer.setDataSource(getApplicationContext(), uri);
-                                mediaPlayer.prepare();
-                                mediaPlayer.start();
-                            } catch (IOException e) {
-                                Log.e("MediaPlayIO", "Error IO", e);
-                            }
+                            StorageReference reference = FirebaseStorage.getInstance().getReference().child(fuser.getUid())
+                                    .child(file_name);
+                            putAudio(reference,uri);
+//                            MediaPlayer mediaPlayer = new MediaPlayer();
+//                            mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
+//                                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+//                                    .setUsage(AudioAttributes.USAGE_MEDIA)
+//                                    .build());
+//                            try {
+//                                mediaPlayer.setDataSource(getApplicationContext(), uri);
+//                                mediaPlayer.prepare();
+//                                mediaPlayer.start();
+//                            } catch (IOException e) {
+//                                Log.e("MediaPlayIO", "Error IO", e);
+//                            }
                             return false;
                     }
                     return false;
@@ -327,6 +332,43 @@ public class MessageActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    private void putAudio(@NonNull StorageReference reference,@NonNull Uri uri){
+
+        fuser = FirebaseAuth.getInstance().getCurrentUser();
+        reference.putFile(uri)
+                .addOnCompleteListener(MessageActivity.this, task -> {
+                    if (task.isSuccessful()){
+                        task.getResult().getMetadata().getReference().getDownloadUrl().addOnCompleteListener(MessageActivity.this,task1 -> {
+
+                            assert task1.getResult() != null;
+                            intent = getIntent();
+                            final String receiver = intent.getStringExtra("user_id");
+                            String sender = fuser.getUid();
+
+                            Date date = new Date();
+                            String ts = Long.toString(date.getTime());
+                            DatabaseReference reference1 = FirebaseDatabase.getInstance().getReference();
+                            HashMap<String, Object> hashMap = new HashMap<>();
+                            hashMap.put("sender", sender);
+                            hashMap.put("receiver", receiver);
+                            hashMap.put("message", null);
+                            hashMap.put("timestamp", ServerValue.TIMESTAMP);
+                            hashMap.put("unique_id", ts);
+                            hashMap.put("audioUrl", task1.getResult().toString());
+                            hashMap.put("isseen", false);
+
+                            Log.d("audioUrl", task1.getResult().toString(), task1.getException());
+
+                            reference1.child("Chats").child(sender+"_"+receiver).child(ts).setValue(hashMap);
+                            reference1.child("Chats").child(receiver+"_"+sender).child(ts).setValue(hashMap);
+                        });
+                    }
+                }).addOnFailureListener(e -> {
+                    Log.e("AudioUploadError",e.getMessage(),e);
+                });
+
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")

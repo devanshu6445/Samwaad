@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,6 +18,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -164,15 +166,21 @@ public class DashboardFragment extends Fragment {
             FirebaseFirestore firestore  =FirebaseFirestore.getInstance();
             long timec = System.currentTimeMillis();
             String timeCreated = String.valueOf(timec);
-            String timeEnd = String.valueOf(timec + 86400);
+            String timeEnd = String.valueOf(timec + 86400000);
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             assert user != null;
             StoryMember storyMember = new StoryMember(posturl, user.getUid(), timeEnd, timeCreated, type, user.getUid());
             String uuid = UUID.randomUUID().toString();
             firestore.collection("story").document(user.getUid()).collection(user.getUid())
-                    .add(storyMember);
-        }catch (DatabaseException e){
-            e.printStackTrace();
+                    .document(timeCreated).set(storyMember).addOnCompleteListener(task -> {
+                        if (task.isSuccessful()){
+                            Toast.makeText(getContext(), "Story uploaded successfully", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        }catch (DatabaseException | NullPointerException e){
+            if(e instanceof DatabaseException){
+                e.getMessage();
+            }
         }
     }
 

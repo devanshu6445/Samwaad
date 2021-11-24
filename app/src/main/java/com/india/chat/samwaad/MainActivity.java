@@ -41,9 +41,9 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         BottomNavigationView navView = findViewById(R.id.nav_view);
         navView.setOnNavigationItemSelectedListener(this);
         navView.setSelectedItemId(R.id.chat);
-        SharedPreferences preferences = getSharedPreferences("setting",MODE_PRIVATE);
-        String s = preferences.getString("image_url","nothing");
-        Toast.makeText(MainActivity.this, s, Toast.LENGTH_SHORT).show();
+//        SharedPreferences preferences = getSharedPreferences("setting",MODE_PRIVATE);
+//        String s = preferences.getString("image_url","nothing");
+//        Toast.makeText(MainActivity.this, s, Toast.LENGTH_SHORT).show();
 
         fragmentManager.beginTransaction()
                 .add(R.id.container,userProfile,getString(R.string.user_profile)).hide(userProfile)

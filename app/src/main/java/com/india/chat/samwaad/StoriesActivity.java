@@ -98,7 +98,11 @@ public class StoriesActivity extends AppCompatActivity implements StoriesProgres
         storiesProgressView.setStoriesListener(this);
 
         // below line is use to start stories progress bar.
-        storiesProgressView.startStories(counter);
+        if (resources.length==1){
+            storiesProgressView.startStories();
+        } else {
+            storiesProgressView.startStories(counter);
+        }
 
         // initializing our image view.
         image = (ImageView) findViewById(R.id.image);

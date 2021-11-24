@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -62,15 +63,19 @@ public class HomeFragment extends Fragment {
 
         AppBarLayout app_lay = root.findViewById(R.id.app_lay);
         app_lay.setOutlineProvider(null);
-        pref = getActivity().getSharedPreferences("setting",Context.MODE_PRIVATE);
-        img_profile_home = root.findViewById(R.id.img_profile_home);
-        Log.d("user_iddd",user.getUid());
-        String img_url = pref.getString("image_url","image_url");
-        Glide.with(img_profile_home.getContext())
-                .load(img_url)
-                .placeholder(R.drawable.ic_person)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .into(img_profile_home);
+        try{
+            pref = getActivity().getSharedPreferences("setting", Context.MODE_PRIVATE);
+            img_profile_home = root.findViewById(R.id.img_profile_home);
+            Log.d("user_iddd", user.getUid());
+            String img_url = pref.getString("image_url", "image_url");
+            Glide.with(img_profile_home.getContext())
+                    .load(img_url)
+                    .placeholder(R.drawable.ic_person)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(img_profile_home);
+        }catch(NullPointerException e){
+            e.printStackTrace();
+        }
 
 
         recyclerView = root.findViewById(R.id.recycler_view);
@@ -82,38 +87,41 @@ public class HomeFragment extends Fragment {
         usersList = new ArrayList<>();
 
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Chats");
-        final FirebaseUser fuser = FirebaseAuth.getInstance().getCurrentUser();
-        reference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                usersList.clear();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()){
-                    for (DataSnapshot snapshot1 : snapshot.getChildren()){
-                        Chat chat = snapshot1.getValue(Chat.class);
+        try{
+            final FirebaseUser fuser = FirebaseAuth.getInstance().getCurrentUser();
+            reference.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    usersList.clear();
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        for (DataSnapshot snapshot1 : snapshot.getChildren()) {
+                            Chat chat = snapshot1.getValue(Chat.class);
 
-                        if (chat.getSender().equals(fuser.getUid())){
-                            usersList.add(chat.getReceiver());
-                        }
-                        if (chat.getReceiver().equals(fuser.getUid())){
-                            usersList.add(chat.getSender());
+                            if (chat.getSender().equals(fuser.getUid())) {
+                                usersList.add(chat.getReceiver());
+                            }
+                            if (chat.getReceiver().equals(fuser.getUid())) {
+                                usersList.add(chat.getSender());
+                            }
                         }
                     }
+                    readUsers();
                 }
-                readUsers();
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
 
-            }
-        });
+                }
+            });
+        } catch(NullPointerException e){
+            e.printStackTrace();
+        }
         search_users = root.findViewById(R.id.search_users);
         search_users.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
             }
-
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 searchUsers(s.toString().toLowerCase());
@@ -133,75 +141,84 @@ public class HomeFragment extends Fragment {
         if (toString.equals("")) {
             readUsers();
         } else{
-            final FirebaseUser fuser = FirebaseAuth.getInstance().getCurrentUser();
-            Query query = FirebaseDatabase.getInstance().getReference("users").orderByChild("search")
-                    .startAt(toString)
-                    .endAt(toString + "\uf8ff");
-            query.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    mUsers.clear();
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        User user = snapshot.getValue(User.class);
-                        assert user != null;
-                        if (!user.getId().equals(fuser.getUid())) {
-                            mUsers.add(user);
+            try{
+                final FirebaseUser fuser = FirebaseAuth.getInstance().getCurrentUser();
+                Query query = FirebaseDatabase.getInstance().getReference("users").orderByChild("search")
+                        .startAt(toString)
+                        .endAt(toString + "\uf8ff");
+                query.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        mUsers.clear();
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            User user = snapshot.getValue(User.class);
+                            assert user != null;
+                            if (!user.getId().equals(fuser.getUid())) {
+                                mUsers.add(user);
+                            }
                         }
+
+                        userAdapter = new UserAdapter(getContext(), mUsers, true);
+                        recyclerView.setAdapter(userAdapter);
                     }
 
-                    userAdapter = new UserAdapter(getContext(), mUsers, true);
-                    recyclerView.setAdapter(userAdapter);
-                }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });
+                    }
+                });
+            } catch(NullPointerException e){
+                Toast.makeText(getContext(), e.toString(), Toast.LENGTH_SHORT).show();
+                e.printStackTrace();
+            }
         }
     }
 
 
     private void readUsers() {
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference("users");
-        reference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (search_users.getText().toString().equals("")) {
-                    mUsers.clear();
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        User user = snapshot.getValue(User.class);
-                        for (String id : usersList){
-                            assert user != null;
-                            if(user.getId().equals(id)){
-                                if(mUsers.size()!=0){
-                                    int flag=0;
-                                    for(User u : mUsers) {
-                                        if (user.getId().equals(u.getId())) {
-                                            flag = 1;
-                                            break;
+        try{
+            reference.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (search_users.getText().toString().equals("")) {
+                        mUsers.clear();
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            User user = snapshot.getValue(User.class);
+                            for (String id : usersList){
+                                assert user != null;
+                                if(user.getId().equals(id)){
+                                    if(mUsers.size()!=0){
+                                        int flag=0;
+                                        for(User u : mUsers) {
+                                            if (user.getId().equals(u.getId())) {
+                                                flag = 1;
+                                                break;
+                                            }
                                         }
-                                    }
-                                    if(flag==0)
-                                        mUsers.add(user);
-                                }else{
+                                        if(flag==0)
+                                            mUsers.add(user);
+                                    }else{
 
-                                    mUsers.add(user);
+                                        mUsers.add(user);
+                                    }
                                 }
                             }
+
                         }
-
+                        userAdapter = new UserAdapter(getContext(), mUsers, true);
+                        recyclerView.setAdapter(userAdapter);
                     }
-                    userAdapter = new UserAdapter(getContext(), mUsers, true);
-                    recyclerView.setAdapter(userAdapter);
                 }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.i("H_RU_DE",error.getDetails(),error.toException());
+                }
+            });
+        } catch (NullPointerException e){
+            e.printStackTrace();
+        }
     }
 
 }

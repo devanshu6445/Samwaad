@@ -101,19 +101,23 @@ public class login_to_samwaad extends AppCompatActivity {
                                     reference.get()
                                             .addOnCompleteListener(task1 -> {
                                                 if (task1.isSuccessful()){
-                                                    DocumentSnapshot snapshot = task1.getResult();
-                                                    assert snapshot != null;
-                                                    String name = Objects.requireNonNull(snapshot.get("name")).toString();
-                                                    String imageURL = Objects.requireNonNull(snapshot.get("ImageURL")).toString();
-                                                    String number = Objects.requireNonNull(snapshot.get("phoneNumber")).toString();
-                                                    Toast.makeText(login_to_samwaad.this, name, Toast.LENGTH_SHORT).show();
-                                                    SharedPreferences preferences = getSharedPreferences("setting",MODE_PRIVATE);
-                                                    SharedPreferences.Editor editor = preferences.edit();
-                                                    editor.putString("uid",user1.getUid());
-                                                    editor.putString("image_url",imageURL);
-                                                    editor.putString("name",name);
-                                                    editor.putString("number",number);
-                                                    editor.apply();
+                                                    try{
+                                                        DocumentSnapshot snapshot = task1.getResult();
+                                                        assert snapshot != null;
+                                                        String name = Objects.requireNonNull(snapshot.get("name")).toString();
+                                                        String imageURL = Objects.requireNonNull(snapshot.get("ImageURL")).toString();
+                                                        String number = Objects.requireNonNull(snapshot.get("phoneNumber")).toString();
+                                                        Toast.makeText(login_to_samwaad.this, name, Toast.LENGTH_SHORT).show();
+                                                        SharedPreferences preferences = getSharedPreferences("setting", MODE_PRIVATE);
+                                                        SharedPreferences.Editor editor = preferences.edit();
+                                                        editor.putString("uid", user1.getUid());
+                                                        editor.putString("image_url", imageURL);
+                                                        editor.putString("name", name);
+                                                        editor.putString("number", number);
+                                                        editor.apply();
+                                                    } catch (NullPointerException e){
+                                                        e.printStackTrace();
+                                                    }
                                                 }
                                             });
 

@@ -28,6 +28,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.india.chat.samwaad.Model.User;
+import com.india.chat.samwaad.Model.UserFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -183,18 +184,23 @@ public class UserRegistration extends AppCompatActivity implements AdapterView.O
                                                     editor.putString("number",number);
                                                     editor.apply();
                                                     FirebaseFirestore user_db = FirebaseFirestore.getInstance();
-                                                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("users");
-                                                    profileSet(name,imageURL);
-                                                    User information1;
-                                                    if (imageURL == null){
-                                                        information1 = new User(user.getUid(), name, null, "online",name.toLowerCase());
-                                                    } else {
-                                                        information1 = new User(user.getUid(), name, imageURL, "online",name.toLowerCase());
+                                                    try{
+                                                        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("users");
+                                                        profileSet(name, imageURL);
+                                                        UserFirestore information1;
+                                                        if (imageURL == null) {
+                                                            information1 = new UserFirestore(user.getUid(), name, null, "online", name.toLowerCase());
+                                                        } else {
+                                                            information1 = new UserFirestore(user.getUid(), name, imageURL, "online", name.toLowerCase());
+                                                        }
+                                                        user_db.collection("users").document(user.getUid())
+                                                                .set(information1)
+                                                                .addOnSuccessListener(unused -> Log.d("firestore_db_success", "Success")).addOnFailureListener(e -> Log.d("firestore_db_fail", "failed", e));
+                                                        databaseReference.child(user.getUid()).setValue(information1);
+                                                    }catch(NullPointerException exception){
+                                                        exception.printStackTrace();
+                                                        Toast.makeText(UserRegistration.this, "An error has occured.\n Please try again.", Toast.LENGTH_SHORT).show();
                                                     }
-                                                    user_db.collection("users").document(user.getUid())
-                                                            .set(information1)
-                                                            .addOnSuccessListener(unused -> Log.d("firestore_db_success","Success")).addOnFailureListener(e -> Log.d("firestore_db_fail", "failed", e));
-                                                    databaseReference.child(user.getUid()).setValue(information1);
 
                                                     Intent intent = new Intent(UserRegistration.this, MainActivity.class);
                                                     startActivity(intent);
