@@ -91,38 +91,8 @@ public class login_to_samwaad extends AppCompatActivity {
                         .addOnCompleteListener(login_to_samwaad.this, task -> {
                             if (task.isSuccessful()) {
                                 view1.setVisibility(View.GONE);
-                                FirebaseUser user1 = FirebaseAuth.getInstance().getCurrentUser();
-
-
-                                if (user1!=null){
-                                    DocumentReference reference = FirebaseFirestore.getInstance()
-                                            .collection("users")
-                                            .document(user1.getUid());
-                                    reference.get()
-                                            .addOnCompleteListener(task1 -> {
-                                                if (task1.isSuccessful()){
-                                                    try{
-                                                        DocumentSnapshot snapshot = task1.getResult();
-                                                        assert snapshot != null;
-                                                        String name = Objects.requireNonNull(snapshot.get("name")).toString();
-                                                        String imageURL = Objects.requireNonNull(snapshot.get("ImageURL")).toString();
-                                                        String number = Objects.requireNonNull(snapshot.get("phoneNumber")).toString();
-                                                        Toast.makeText(login_to_samwaad.this, name, Toast.LENGTH_SHORT).show();
-                                                        SharedPreferences preferences = getSharedPreferences("setting", MODE_PRIVATE);
-                                                        SharedPreferences.Editor editor = preferences.edit();
-                                                        editor.putString("uid", user1.getUid());
-                                                        editor.putString("image_url", imageURL);
-                                                        editor.putString("name", name);
-                                                        editor.putString("number", number);
-                                                        editor.apply();
-                                                    } catch (NullPointerException e){
-                                                        e.printStackTrace();
-                                                    }
-                                                }
-                                            });
-
-                                }
-
+                                LoginThread thread = new LoginThread();
+                                thread.start();
                                 Toast.makeText(login_to_samwaad.this, "Welcome to samwaad", Toast.LENGTH_SHORT).show();
                                 startActivity(new Intent(login_to_samwaad.this, MainActivity.class));
                             } else {
@@ -140,5 +110,50 @@ public class login_to_samwaad extends AppCompatActivity {
             }
         });
 
+    }
+    class LoginThread extends Thread{
+
+        @Override
+        public void run() {
+            try {
+                sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            FirebaseUser user1 = FirebaseAuth.getInstance().getCurrentUser();
+
+            if (user1!=null){
+                DocumentReference reference = FirebaseFirestore.getInstance()
+                        .collection("users")
+                        .document(user1.getUid());
+                try{
+                    reference.get()
+                            .addOnCompleteListener(task1 -> {
+                                if (task1.isSuccessful()){
+                                    try{
+                                        DocumentSnapshot snapshot = task1.getResult();
+                                        assert snapshot != null;
+                                        String name = Objects.requireNonNull(snapshot.get("name")).toString();
+                                        String imageURL = Objects.requireNonNull(snapshot.get("imageURL")).toString();
+                                        //String number = Objects.requireNonNull(snapshot.get("phoneNumber")).toString();
+                                        Toast.makeText(login_to_samwaad.this, name, Toast.LENGTH_SHORT).show();
+                                        SharedPreferences preferences = getSharedPreferences("setting", MODE_PRIVATE);
+                                        SharedPreferences.Editor editor = preferences.edit();
+                                        editor.putString("uid", user1.getUid());
+                                        editor.putString("image_url", imageURL);
+                                        editor.putString("name", name);
+                                        //editor.putString("number", number);
+                                        editor.apply();
+                                    } catch (NullPointerException e){
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
+                }catch(NullPointerException e){
+                    e.printStackTrace();
+                }
+
+            }
+        }
     }
 }

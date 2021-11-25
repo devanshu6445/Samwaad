@@ -61,16 +61,16 @@ public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         StoryMember storyMember = storyList.get(position);
         ViewHolder viewHolder = (ViewHolder) holder;
-
+        Date date = new Date();
         long timeCreated = Long.parseLong(storyMember.getTimeUpload());
-        long currentTime = System.currentTimeMillis();
+        long currentTime = date.getTime()/1000;
         long difference = currentTime-timeCreated;
-        if (difference<=3600000){
+        if (difference<=3600){
             Log.i("StoryTime",String.valueOf(difference));
-            int minutes = (int)difference/60000;
+            int minutes = (int)difference/60;
             String time = minutes +" minutes ago";
             viewHolder.storyCreatedTime.setText(time);
-        } else if(difference<=86400000){
+        } else if(difference<=86400){
             Calendar c = Calendar.getInstance();
             c.setTimeInMillis(timeCreated);
             Date d = c.getTime();
@@ -104,13 +104,16 @@ public class StoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
         int j=0;
         String[] urls = new String[i];
+        Date currentDate = new Date();
+        long current_time = currentDate.getTime()/1000;
         for(QueryDocumentSnapshot snapshot : value){
             String url = snapshot.get("postUri").toString();
             Log.i("urlStory",url);
             long timeEnd = Long.parseLong(snapshot.get("timeEnd").toString());
+            long difference = timeEnd-current_time;
             Log.i("timeEnd",String.valueOf(timeEnd));
             Log.i("currentTime",String.valueOf(System.currentTimeMillis()));
-            if (timeEnd>System.currentTimeMillis()) {
+            if (difference>0) {
                 if (j <= i-1) {
                     urls[j] = url;
                 }

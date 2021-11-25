@@ -46,6 +46,7 @@ import com.india.chat.samwaad.Adapter.MessageAdapter;
 import com.india.chat.samwaad.MainActivity;
 import com.india.chat.samwaad.Model.Chat;
 import com.india.chat.samwaad.Model.User;
+import com.india.chat.samwaad.Model.UserFirestore;
 import com.india.chat.samwaad.R;
 
 import java.io.File;
@@ -525,11 +526,11 @@ public class MessageActivity extends AppCompatActivity {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     //getting value from snapshot
-                    User user = snapshot.getValue(User.class);
+                    UserFirestore user = snapshot.getValue(UserFirestore.class);
                     assert user != null;
                     //passing receiver name to username TextView
-                    username.setText(user.getUsername());
-                    Log.d("username_11",user.getUsername());
+                    username.setText(user.getName());
+                    Log.d("username_11",user.getName());
                     //Loading image in profile_image ImageView
                     Glide.with(getApplicationContext())
                             .load(user.getImageURL())

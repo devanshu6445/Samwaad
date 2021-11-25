@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="@color/whiteCardColor"
     android:orientation="vertical"
-    tools:context=".ui.dashboard.DashboardFragment">
+    tools:context=".ui.dashboard.StoryFragment">
 
     <LinearLayout
         android:id="@+id/linearLayout2"

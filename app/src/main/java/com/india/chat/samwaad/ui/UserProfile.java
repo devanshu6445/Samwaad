@@ -1,6 +1,8 @@
 package com.india.chat.samwaad.ui;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -48,19 +51,19 @@ public class UserProfile extends Fragment {
         TextView changePassword = root.findViewById(R.id.changePassword);
         name_tv = root.findViewById(R.id.usernameTextVie);
         firebaseFirestore = FirebaseFirestore.getInstance();
-        firebaseFirestore.collection("users").document(fuser.getUid())
-                .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()){
-                            DocumentSnapshot documentSnapshot =task.getResult();
-                            if (documentSnapshot.get("ImageURL")!=null){
-                                Glide.with(imageView.getContext()).load(documentSnapshot.get("ImageURL")).into(imageView);
-                                name_tv.setText(documentSnapshot.get("name").toString());
-                            }
-                        }
-                    }
-                });
+        SharedPreferences preferences = getActivity().getSharedPreferences("setting", Context.MODE_PRIVATE);
+        String image_url = preferences.getString("image_url","image_url");
+        String name = preferences.getString("name","0");
+        Glide.with(imageView.getContext())
+                .load(image_url)
+                .apply(new RequestOptions().error(R.drawable.ic_person))
+                .into(imageView);
+        if(!name.equals("0")){
+            name_tv.setText(name);
+        }else{
+            name_tv.setText("Please set your name");
+        }
+
 
 
         changePassword.setOnClickListener(v -> {

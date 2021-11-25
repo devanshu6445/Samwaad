@@ -33,6 +33,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.india.chat.samwaad.Adapter.UserAdapter;
 import com.india.chat.samwaad.Model.Chat;
 import com.india.chat.samwaad.Model.User;
+import com.india.chat.samwaad.Model.UserFirestore;
 import com.india.chat.samwaad.R;
 
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ public class HomeFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private UserAdapter userAdapter;
-    private List<User> mUsers;
+    private List<UserFirestore> mUsers;
     private CircleImageView img_profile_home;
     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
     EditText search_users;
@@ -151,7 +152,7 @@ public class HomeFragment extends Fragment {
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         mUsers.clear();
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                            User user = snapshot.getValue(User.class);
+                            UserFirestore user = snapshot.getValue(UserFirestore.class);
                             assert user != null;
                             if (!user.getId().equals(fuser.getUid())) {
                                 mUsers.add(user);
@@ -184,13 +185,13 @@ public class HomeFragment extends Fragment {
                     if (search_users.getText().toString().equals("")) {
                         mUsers.clear();
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                            User user = snapshot.getValue(User.class);
+                            UserFirestore user = snapshot.getValue(UserFirestore.class);
                             for (String id : usersList){
                                 assert user != null;
                                 if(user.getId().equals(id)){
                                     if(mUsers.size()!=0){
                                         int flag=0;
-                                        for(User u : mUsers) {
+                                        for(UserFirestore u : mUsers) {
                                             if (user.getId().equals(u.getId())) {
                                                 flag = 1;
                                                 break;

@@ -1,5 +1,6 @@
 package com.india.chat.samwaad;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -16,9 +17,11 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
@@ -176,35 +179,11 @@ public class UserRegistration extends AppCompatActivity implements AdapterView.O
                                                 if (task1.isSuccessful()) {
                                                     imageURL = task1.getResult().toString();
                                                     Log.d("ImageUrrl",imageURL, task1.getException());
-                                                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-                                                    SharedPreferences.Editor editor = preferences.edit();
-                                                    editor.putString("uid",user.getUid());
-                                                    editor.putString("image_url",imageURL);
-                                                    editor.putString("name",name);
-                                                    editor.putString("number",number);
-                                                    editor.apply();
-                                                    FirebaseFirestore user_db = FirebaseFirestore.getInstance();
-                                                    try{
-                                                        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("users");
-                                                        profileSet(name, imageURL);
-                                                        UserFirestore information1;
-                                                        if (imageURL == null) {
-                                                            information1 = new UserFirestore(user.getUid(), name, null, "online", name.toLowerCase());
-                                                        } else {
-                                                            information1 = new UserFirestore(user.getUid(), name, imageURL, "online", name.toLowerCase());
-                                                        }
-                                                        user_db.collection("users").document(user.getUid())
-                                                                .set(information1)
-                                                                .addOnSuccessListener(unused -> Log.d("firestore_db_success", "Success")).addOnFailureListener(e -> Log.d("firestore_db_fail", "failed", e));
-                                                        databaseReference.child(user.getUid()).setValue(information1);
-                                                    }catch(NullPointerException exception){
-                                                        exception.printStackTrace();
-                                                        Toast.makeText(UserRegistration.this, "An error has occured.\n Please try again.", Toast.LENGTH_SHORT).show();
-                                                    }
-
+                                                    UserRegThread userRegThread = new UserRegThread(name,imageURL,number);
+                                                    userRegThread.start();
                                                     Intent intent = new Intent(UserRegistration.this, MainActivity.class);
                                                     startActivity(intent);
-                                                    Toast.makeText(UserRegistration.this, "Registration done correctly", Toast.LENGTH_LONG).show();
+                                                    ///Toast.makeText(UserRegistration.this, "Registration done correctly", Toast.LENGTH_LONG).show();
                                                 }
                                             });
                         }
@@ -213,5 +192,61 @@ public class UserRegistration extends AppCompatActivity implements AdapterView.O
                                 task.getException());
                     }
                 });
+    }
+
+    class UserRegThread extends Thread{
+
+        private String name;
+        private String imageUrl;
+        private String number;
+
+        public UserRegThread(){
+
+        }
+
+        public UserRegThread(@NonNull String name, String imageUrl,@NonNull String number){
+            this.name = name;
+            this.imageUrl = imageUrl;
+            this.number = number;
+        }
+
+        @Override
+        public void run() {
+            try {
+                sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            SharedPreferences preferences = getSharedPreferences("setting",MODE_PRIVATE);
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString("uid",user.getUid());
+            editor.putString("image_url",imageURL);
+            editor.putString("name",name);
+            editor.putString("number",number);
+            editor.apply();
+            FirebaseFirestore user_db = FirebaseFirestore.getInstance();
+            try{
+                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("users");
+                profileSet(name, imageURL);
+                UserFirestore information1;
+                if (imageURL == null) {
+                    information1 = new UserFirestore(user.getUid(), name, null, "online", name.toLowerCase());
+                } else {
+                    information1 = new UserFirestore(user.getUid(), name, imageURL, "online", name.toLowerCase());
+                }
+                user_db.collection("users").document(user.getUid())
+                        .set(information1)
+                        .addOnSuccessListener(unused -> Log.d("firestore_db_success", "Success")).addOnFailureListener(e -> Log.d("firestore_db_fail", "failed", e));
+                databaseReference.child(user.getUid()).setValue(information1).addOnSuccessListener(unused -> {
+                    Log.d("realtime_db_success","success");
+                }).addOnFailureListener(e ->{
+                    Log.e("realtime_db_failed",e.getMessage(),e);
+                });
+            }catch(NullPointerException exception){
+                Log.e("RegNullExe",exception.getMessage(),exception);
+            }
+        }
     }
 }

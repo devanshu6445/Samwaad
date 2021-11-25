@@ -48,11 +48,12 @@ import com.india.chat.samwaad.Model.User;
 import com.india.chat.samwaad.R;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class DashboardFragment extends Fragment {
+public class StoryFragment extends Fragment {
 
     private Button addStory;
     private RecyclerView recyclerView_story;
@@ -141,9 +142,7 @@ public class DashboardFragment extends Fragment {
     private void putImagetoStorage(Uri uri,StorageReference reference, String type){
 
         try {
-            reference.putFile(uri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+            reference.putFile(uri).addOnCompleteListener(task -> {
                 if (task.isSuccessful()){
                     if(task.getResult()!=null){
                         task.getResult().getMetadata().getReference().getDownloadUrl()
@@ -154,8 +153,7 @@ public class DashboardFragment extends Fragment {
                                 });
                     }
                 }
-            }
-        });
+            });
         } catch(NullPointerException e){
             e.printStackTrace();
             Log.d("UploadNull",e.toString());
@@ -164,15 +162,19 @@ public class DashboardFragment extends Fragment {
     private void addStory(String posturl,String type){
         try {
             FirebaseFirestore firestore  =FirebaseFirestore.getInstance();
-            long timec = System.currentTimeMillis();
-            String timeCreated = String.valueOf(timec);
-            String timeEnd = String.valueOf(timec + 86400000);
+            Date date = new Date();
+            long millis = date.getTime();
+            long seconds = millis/1000;
+
+            long timeE  = seconds+86400;
+            String timeCreated = String.valueOf(seconds);
+            String timeEnd = String.valueOf(timeE);
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             assert user != null;
-            StoryMember storyMember = new StoryMember(posturl, user.getUid(), timeEnd, timeCreated, type, user.getUid());
-            String uuid = UUID.randomUUID().toString();
+            StoryMember storyMember = new StoryMember(posturl, user.getDisplayName(), timeEnd, timeCreated, type, user.getUid());
+
             firestore.collection("story").document(user.getUid()).collection(user.getUid())
-                    .document(timeCreated).set(storyMember).addOnCompleteListener(task -> {
+                    .document(String.valueOf(seconds)).set(storyMember).addOnCompleteListener(task -> {
                         if (task.isSuccessful()){
                             Toast.makeText(getContext(), "Story uploaded successfully", Toast.LENGTH_SHORT).show();
                         }
@@ -197,15 +199,15 @@ public class DashboardFragment extends Fragment {
             query.addSnapshotListener((value, error) -> {
 
                 int i=0;
-                assert value != null;
+//                assert value != null;
                 try {
                     for (QueryDocumentSnapshot queryDocumentSnapshot : value) {
                         if (i == 0) {
                             String name = Objects.requireNonNull(queryDocumentSnapshot.get("name")).toString();
                             String uid = Objects.requireNonNull(queryDocumentSnapshot.get("uid")).toString();
                             String postUri = Objects.requireNonNull(queryDocumentSnapshot.get("postUri")).toString();
-                            String timeEnd = Objects.requireNonNull(queryDocumentSnapshot.get("timeEnd")).toString();
-                            String timeUpload = Objects.requireNonNull(queryDocumentSnapshot.get("timeUpload")).toString();
+                            String timeEnd = Objects.requireNonNull(queryDocumentSnapshot.get("timeEnd").toString());
+                            String timeUpload = Objects.requireNonNull(queryDocumentSnapshot.get("timeUpload").toString());
                             StoryMember storyMember = new StoryMember(postUri, name, timeEnd, timeUpload, null, uid);
                             memberList.add(storyMember);
                             i++;
@@ -258,38 +260,38 @@ public class DashboardFragment extends Fragment {
             }
         });
     }
-    private void showStory(@NonNull List<User> mUsers){
-        memberList = new ArrayList<>();
-        reference = FirebaseDatabase.getInstance().getReference();
-        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-        memberList.clear();
-        for (User user : mUsers){
-            reference = FirebaseDatabase.getInstance().getReference("story").child(user.getId());
-                    reference.addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            for (DataSnapshot snapshot : dataSnapshot.getChildren()){
-                                String name = snapshot.child("name").getValue(String.class);
-                                String uid = snapshot.child("uid").getValue(String.class);
-                                String postUri = snapshot.child("postUri").getValue(String.class);
-                                String type = snapshot.child("type").getValue(String.class);
-                                String timeEnd = snapshot.child("timeEnd").getValue(String.class);
-                                String timeUpload = snapshot.child("timeUpload").getValue(String.class);
-                                StoryMember storyMember = new StoryMember(postUri,name,timeEnd,timeUpload,type,uid);
-                                memberList.add(storyMember);
-
-                            }
-                            storyAdapter = new StoryAdapter(getContext(),memberList);
-                            recyclerView_story.setAdapter(storyAdapter);
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-
-                        }
-                    });
-        }
-    }
+//    private void showStory(@NonNull List<User> mUsers){
+//        memberList = new ArrayList<>();
+//        reference = FirebaseDatabase.getInstance().getReference();
+//        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+//        memberList.clear();
+//        for (User user : mUsers){
+//            reference = FirebaseDatabase.getInstance().getReference("story").child(user.getId());
+//                    reference.addValueEventListener(new ValueEventListener() {
+//                        @Override
+//                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                            for (DataSnapshot snapshot : dataSnapshot.getChildren()){
+//                                String name = snapshot.child("name").getValue(String.class);
+//                                String uid = snapshot.child("uid").getValue(String.class);
+//                                String postUri = snapshot.child("postUri").getValue(String.class);
+//                                String type = snapshot.child("type").getValue(String.class);
+//                                String timeEnd = snapshot.child("timeEnd").getValue(String.class);
+//                                String timeUpload = snapshot.child("timeUpload").getValue(String.class);
+//                                StoryMember storyMember = new StoryMember(postUri,name,timeEnd,timeUpload,type,uid);
+//                                memberList.add(storyMember);
+//
+//                            }
+//                            storyAdapter = new StoryAdapter(getContext(),memberList);
+//                            recyclerView_story.setAdapter(storyAdapter);
+//                        }
+//
+//                        @Override
+//                        public void onCancelled(@NonNull DatabaseError error) {
+//
+//                        }
+//                    });
+//        }
+//    }
     private void readUsers() {
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference("users");
         reference.addValueEventListener(new ValueEventListener() {
@@ -329,4 +331,5 @@ public class DashboardFragment extends Fragment {
             }
         });
     }
+
 }

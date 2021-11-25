@@ -25,6 +25,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.india.chat.samwaad.Model.Chat;
 import com.india.chat.samwaad.Model.User;
+import com.india.chat.samwaad.Model.UserFirestore;
 import com.india.chat.samwaad.R;
 import com.india.chat.samwaad.chat.MessageActivity;
 
@@ -40,13 +41,13 @@ import java.util.TimeZone;
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 
     private Context mContext;
-    private List<User> mUsers;
+    private List<UserFirestore> mUsers;
     private boolean inchat;
 
     String theLastMessage;
     String theLastMessageFromYou;
 
-    public UserAdapter(Context mContext, List<User> mUsers, boolean inchat){
+    public UserAdapter(Context mContext, List<UserFirestore> mUsers, boolean inchat){
         this.mUsers = mUsers;
         this.mContext = mContext;
         this.inchat = inchat;
@@ -61,9 +62,9 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        final User user = mUsers.get(position);
+        final UserFirestore user = mUsers.get(position);
 
-        holder.username.setText(user.getUsername());
+        holder.username.setText(user.getName());
         if (user.getImageURL()==null){
             holder.profile_image.setImageResource(R.drawable.ic_person);
         } else {

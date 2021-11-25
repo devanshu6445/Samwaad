@@ -1,10 +1,8 @@
 package com.india.chat.samwaad;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,9 +16,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.india.chat.samwaad.ui.UserProfile;
-import com.india.chat.samwaad.ui.dashboard.DashboardFragment;
+import com.india.chat.samwaad.ui.dashboard.StoryFragment;
 import com.india.chat.samwaad.ui.home.HomeFragment;
-import com.india.chat.samwaad.ui.notifications.NotificationsFragment;
+import com.india.chat.samwaad.ui.notifications.ContactsFragment;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -47,15 +45,15 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
 
         fragmentManager.beginTransaction()
                 .add(R.id.container,userProfile,getString(R.string.user_profile)).hide(userProfile)
-                .add(R.id.container,notificationsFragment,getString(R.string.search)).hide(notificationsFragment)
-                .add(R.id.container,dashboardFragment,getString(R.string.status)).hide(dashboardFragment)
+                .add(R.id.container, contactsFragment,getString(R.string.search)).hide(contactsFragment)
+                .add(R.id.container, storyFragment,getString(R.string.status)).hide(storyFragment)
                 .add(R.id.container,homeFragment,getString(R.string.chat))
                 .commit();
 
     }
-    DashboardFragment dashboardFragment = new DashboardFragment();
+    StoryFragment storyFragment = new StoryFragment();
     HomeFragment homeFragment = new HomeFragment();
-    NotificationsFragment notificationsFragment = new NotificationsFragment();
+    ContactsFragment contactsFragment = new ContactsFragment();
     UserProfile userProfile = new UserProfile();
     Fragment activeFragment = homeFragment;
 
@@ -96,12 +94,12 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 activeFragment = homeFragment;
                 return true;
             case R.id.status:
-                getSupportFragmentManager().beginTransaction().hide(activeFragment).show(dashboardFragment).commit();
-                activeFragment = dashboardFragment;
+                getSupportFragmentManager().beginTransaction().hide(activeFragment).show(storyFragment).commit();
+                activeFragment = storyFragment;
                 return true;
             case R.id.search:
-                getSupportFragmentManager().beginTransaction().hide(activeFragment).show(notificationsFragment).commit();
-                activeFragment = notificationsFragment;
+                getSupportFragmentManager().beginTransaction().hide(activeFragment).show(contactsFragment).commit();
+                activeFragment = contactsFragment;
                 return true;
             case R.id.user_profile:
                 getSupportFragmentManager().beginTransaction().hide(activeFragment).show(userProfile).commit();

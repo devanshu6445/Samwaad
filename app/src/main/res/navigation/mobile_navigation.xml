@@ -13,13 +13,13 @@
 
     <fragment
         android:id="@+id/status"
-        android:name="com.india.chat.samwaad.ui.dashboard.DashboardFragment"
+        android:name="com.india.chat.samwaad.ui.dashboard.StoryFragment"
         android:label="@string/status"
         tools:layout="@layout/fragment_dashboard" />
 
     <fragment
         android:id="@+id/search"
-        android:name="com.india.chat.samwaad.ui.notifications.NotificationsFragment"
+        android:name="com.india.chat.samwaad.ui.notifications.ContactsFragment"
         android:label="@string/search"
         tools:layout="@layout/fragment_notifications" />
 
