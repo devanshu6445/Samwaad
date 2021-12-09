@@ -2,14 +2,19 @@ package com.india.chat.samwaad.ui.dashboard;
 
 import static android.app.Activity.RESULT_OK;
 
+import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,7 +23,8 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -30,16 +36,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageException;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 import com.india.chat.samwaad.Adapter.StoryAdapter;
 import com.india.chat.samwaad.Model.Chat;
 import com.india.chat.samwaad.Model.Contacts;
@@ -47,11 +49,14 @@ import com.india.chat.samwaad.Model.StoryMember;
 import com.india.chat.samwaad.Model.User;
 import com.india.chat.samwaad.R;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class StoryFragment extends Fragment {
 
@@ -63,19 +68,26 @@ public class StoryFragment extends Fragment {
     private List<String> usersList;
     private List<User> mUsers;
     private final int STORY_REQUEST_CODE=1;
-
+    SharedPreferences pref;
+    TextView textView_creation_time;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        View root = inflater.inflate(R.layout.fragment_dashboard, container, false);
+        View root = inflater.inflate(R.layout.fragment_story, container, false);
         addStory = root.findViewById(R.id.addStory);
-
         recyclerView_story = root.findViewById(R.id.recycler_view_story);
         recyclerView_story.setHasFixedSize(true);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
         recyclerView_story.setLayoutManager(linearLayoutManager);
-
+        View storyIncludeLayout = root.findViewById(R.id.lay_mystory);
+        CircleImageView imageView = storyIncludeLayout.findViewById(R.id.storyImageView);
+        TextView name = storyIncludeLayout.findViewById(R.id.textView_name);
+        textView_creation_time = root.findViewById(R.id.textView_created_time);
+        showMyStory(imageView,name,textView_creation_time);
+        imageView.setOnClickListener(v->{
+            Toast.makeText(getContext(), "Image View Clicked", Toast.LENGTH_SHORT).show();
+        });
         addStory.setOnClickListener(v ->{
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -159,6 +171,111 @@ public class StoryFragment extends Fragment {
             Log.d("UploadNull",e.toString());
         }
     }
+
+    private void showMyStory(final CircleImageView imageView, TextView name,TextView textView_creation){
+        pref = getActivity().getSharedPreferences("setting", Context.MODE_PRIVATE);
+        String id = pref.getString("uid","No uid");
+        Log.d("my_id1",id);
+        if(!id.equals("No uid")){
+            Log.d("my_id2",id);
+            FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+            CollectionReference reference = firestore.collection("story")
+                    .document(id)
+                    .collection(id);
+            Query query = reference.whereEqualTo("uid",id);
+            query.addSnapshotListener((value, error) -> {
+                int i=1;
+                try {
+                    int j=0;
+                    for (QueryDocumentSnapshot q : value){
+                        j++;
+                    }
+                    Log.d("story_count", String.valueOf(j));
+                    for (QueryDocumentSnapshot queryDocumentSnapshot : value) {
+                        Date date = new Date();
+                        long timeCreated = Long.parseLong(queryDocumentSnapshot.get("timeUpload").toString());
+                        long currentTime = date.getTime()/1000;
+                        long difference = currentTime-timeCreated;
+                        if(difference>86400){
+                            Thread thread = new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    deleteStory(queryDocumentSnapshot);
+                                }
+                            });
+                        }
+                        if (i == j-1) {
+                            String name1 = Objects.requireNonNull(queryDocumentSnapshot.get("name")).toString();
+                            String uid = Objects.requireNonNull(queryDocumentSnapshot.get("uid")).toString();
+                            String postUri = Objects.requireNonNull(queryDocumentSnapshot.get("postUri")).toString();
+                            String timeEnd = Objects.requireNonNull(queryDocumentSnapshot.get("timeEnd").toString());
+                            String timeUpload = Objects.requireNonNull(queryDocumentSnapshot.get("timeUpload").toString());
+                            Date date1 = new Date();
+
+                            if (difference<=3600){
+                                Log.i("StoryTime",String.valueOf(difference));
+                                int minutes = (int)difference/60;
+                                String time = minutes +" minutes ago";
+                                //loadLastStory(queryDocumentSnapshot,name,imageView);
+                                textView_creation.setText(time);
+
+                            } else if(difference<=86400){
+                                Calendar c = Calendar.getInstance();
+                                c.setTimeInMillis(timeCreated);
+                                Date d = c.getTime();
+                                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
+                                //loadLastStory(queryDocumentSnapshot,name,imageView);
+                                String time = simpleDateFormat.format(d);
+                                textView_creation.setText(time);
+
+                            }
+                            //StoryMember storyMember = new StoryMember(postUri, name1, timeEnd, timeUpload, null, uid);
+                            name.setText(name1);
+                            Glide.with(imageView.getContext())
+                                    .load(postUri)
+                                    .placeholder(R.drawable.ic_person)
+                                    .apply(new RequestOptions().error(R.drawable.glide_placeholder))
+                                    .into(imageView);
+                        }
+                            i++;
+//                        if (i==1){
+//                            break;
+//                        }
+                    }
+                } catch(NullPointerException e){
+                    e.printStackTrace();
+                }
+            });
+        }
+    }
+    private void deleteStory(QueryDocumentSnapshot queryDocumentSnapshot){
+        try{
+            DocumentReference reference = queryDocumentSnapshot.getReference();
+            reference.delete().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    Toast.makeText(getContext(), task.getResult().toString(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }catch(NullPointerException e){
+            e.printStackTrace();
+        }
+    }
+
+    private void loadLastStory(QueryDocumentSnapshot queryDocumentSnapshot, TextView Uname,
+                               CircleImageView UimageView){
+        String name1 = Objects.requireNonNull(queryDocumentSnapshot.get("name")).toString();
+        String uid = Objects.requireNonNull(queryDocumentSnapshot.get("uid")).toString();
+        String postUri = Objects.requireNonNull(queryDocumentSnapshot.get("postUri")).toString();
+        String timeEnd = Objects.requireNonNull(queryDocumentSnapshot.get("timeEnd").toString());
+        String timeUpload = Objects.requireNonNull(queryDocumentSnapshot.get("timeUpload").toString());
+        //StoryMember storyMember = new StoryMember(postUri, name1, timeEnd, timeUpload, null, uid);
+        Uname.setText(name1);
+        Glide.with(UimageView.getContext())
+                .load(postUri)
+                .placeholder(R.drawable.ic_person)
+                .apply(new RequestOptions().error(R.drawable.glide_placeholder))
+                .into(UimageView);
+    }
     private void addStory(String posturl,String type){
         try {
             FirebaseFirestore firestore  =FirebaseFirestore.getInstance();
@@ -186,7 +303,7 @@ public class StoryFragment extends Fragment {
         }
     }
 
-    private void testStory(List<User> mUsers1) {
+    private void testStory(@NonNull List<User> mUsers1) {
         memberList = new ArrayList<>();
         reference = FirebaseDatabase.getInstance().getReference();
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
@@ -198,11 +315,15 @@ public class StoryFragment extends Fragment {
             Query query = reference.whereEqualTo("uid",user.getId());
             query.addSnapshotListener((value, error) -> {
 
-                int i=0;
+                int i=1;
 //                assert value != null;
                 try {
+                    int j=0;
+                    for (QueryDocumentSnapshot q : value){
+                        j++;
+                    }
                     for (QueryDocumentSnapshot queryDocumentSnapshot : value) {
-                        if (i == 0) {
+                        if (i == j) {
                             String name = Objects.requireNonNull(queryDocumentSnapshot.get("name")).toString();
                             String uid = Objects.requireNonNull(queryDocumentSnapshot.get("uid")).toString();
                             String postUri = Objects.requireNonNull(queryDocumentSnapshot.get("postUri")).toString();
@@ -210,11 +331,12 @@ public class StoryFragment extends Fragment {
                             String timeUpload = Objects.requireNonNull(queryDocumentSnapshot.get("timeUpload").toString());
                             StoryMember storyMember = new StoryMember(postUri, name, timeEnd, timeUpload, null, uid);
                             memberList.add(storyMember);
-                            i++;
+
                         }
-                        if (i==1){
-                            break;
-                        }
+                        i++;
+//                        if (i==1){
+//                            break;
+//                        }
                     }
                 } catch(NullPointerException e){
                     e.printStackTrace();
@@ -332,4 +454,31 @@ public class StoryFragment extends Fragment {
         });
     }
 
+}
+
+class DeleteStoryService extends Service{
+
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        // TODO: Return the communication channel to the service
+        throw new UnsupportedOperationException("No implementation");
+
+    }
 }

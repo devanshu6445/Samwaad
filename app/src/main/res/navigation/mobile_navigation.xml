@@ -15,7 +15,7 @@
         android:id="@+id/status"
         android:name="com.india.chat.samwaad.ui.dashboard.StoryFragment"
         android:label="@string/status"
-        tools:layout="@layout/fragment_dashboard" />
+        tools:layout="@layout/fragment_story" />
 
     <fragment
         android:id="@+id/search"

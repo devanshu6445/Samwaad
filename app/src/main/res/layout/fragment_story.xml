@@ -16,7 +16,7 @@
         android:orientation="vertical">
 
         <include
-            android:id="@+id/lay"
+            android:id="@+id/lay_mystory"
             android:layout_marginTop="15dp"
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
