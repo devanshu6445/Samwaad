@@ -130,5 +130,10 @@
 
         </LinearLayout>
     </ScrollView>
-    <include android:id="@+id/progress_Bar2" android:layout_width="match_parent" android:layout_height="match_parent" layout="@layout/progress_bar"/>
+
+    <include
+        android:id="@+id/progress_Bar2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        layout="@layout/progress_bar" />
 </androidx.constraintlayout.widget.ConstraintLayout>

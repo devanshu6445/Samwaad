@@ -25,8 +25,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -60,16 +58,16 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class StoryFragment extends Fragment {
 
+    private final int STORY_REQUEST_CODE = 1;
+    DatabaseReference reference;
+    SharedPreferences pref;
+    TextView textView_creation_time;
     private Button addStory;
     private RecyclerView recyclerView_story;
     private List<StoryMember> memberList;
     private StoryAdapter storyAdapter;
-    DatabaseReference reference;
     private List<String> usersList;
     private List<User> mUsers;
-    private final int STORY_REQUEST_CODE=1;
-    SharedPreferences pref;
-    TextView textView_creation_time;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -84,15 +82,15 @@ public class StoryFragment extends Fragment {
         CircleImageView imageView = storyIncludeLayout.findViewById(R.id.storyImageView);
         TextView name = storyIncludeLayout.findViewById(R.id.textView_name);
         textView_creation_time = root.findViewById(R.id.textView_created_time);
-        showMyStory(imageView,name,textView_creation_time);
-        imageView.setOnClickListener(v->{
+        showMyStory(imageView, name, textView_creation_time);
+        imageView.setOnClickListener(v -> {
             Toast.makeText(getContext(), "Image View Clicked", Toast.LENGTH_SHORT).show();
         });
-        addStory.setOnClickListener(v ->{
+        addStory.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("image/*");
-            startActivityForResult(intent,STORY_REQUEST_CODE);
+            startActivityForResult(intent, STORY_REQUEST_CODE);
         });
         mUsers = new ArrayList<>();
 
@@ -117,7 +115,7 @@ public class StoryFragment extends Fragment {
                             }
                         }
                     }
-                } catch (NullPointerException e){
+                } catch (NullPointerException e) {
                     e.printStackTrace();
                 }
                 readUsers();
@@ -136,9 +134,9 @@ public class StoryFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode==STORY_REQUEST_CODE){
-            if (resultCode == RESULT_OK){
-                if (data!=null){
+        if (requestCode == STORY_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                if (data != null) {
                     Uri uri = data.getData();
                     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                     assert user != null;
@@ -146,57 +144,58 @@ public class StoryFragment extends Fragment {
                             .child("stories")
                             .child(user.getUid())
                             .child(uri.getLastPathSegment());
-                    putImagetoStorage(uri,storageReference,data.getType());
+                    putImagetoStorage(uri, storageReference, data.getType());
                 }
             }
         }
     }
-    private void putImagetoStorage(Uri uri,StorageReference reference, String type){
+
+    private void putImagetoStorage(Uri uri, StorageReference reference, String type) {
 
         try {
             reference.putFile(uri).addOnCompleteListener(task -> {
-                if (task.isSuccessful()){
-                    if(task.getResult()!=null){
+                if (task.isSuccessful()) {
+                    if (task.getResult() != null) {
                         task.getResult().getMetadata().getReference().getDownloadUrl()
                                 .addOnCompleteListener(task1 -> {
                                     String imageurl = task1.getResult().toString();
-                                    Log.d("ImageUpload",imageurl);
-                                    addStory(imageurl,type);
+                                    Log.d("ImageUpload", imageurl);
+                                    addStory(imageurl, type);
                                 });
                     }
                 }
             });
-        } catch(NullPointerException e){
+        } catch (NullPointerException e) {
             e.printStackTrace();
-            Log.d("UploadNull",e.toString());
+            Log.d("UploadNull", e.toString());
         }
     }
 
-    private void showMyStory(final CircleImageView imageView, TextView name,TextView textView_creation){
+    private void showMyStory(final CircleImageView imageView, TextView name, TextView textView_creation) {
         pref = getActivity().getSharedPreferences("setting", Context.MODE_PRIVATE);
-        String id = pref.getString("uid","No uid");
-        Log.d("my_id1",id);
-        if(!id.equals("No uid")){
-            Log.d("my_id2",id);
+        String id = pref.getString("uid", "No uid");
+        Log.d("my_id1", id);
+        if (!id.equals("No uid")) {
+            Log.d("my_id2", id);
             FirebaseFirestore firestore = FirebaseFirestore.getInstance();
             CollectionReference reference = firestore.collection("story")
                     .document(id)
                     .collection(id);
-            Query query = reference.whereEqualTo("uid",id);
+            Query query = reference.whereEqualTo("uid", id);
             query.addSnapshotListener((value, error) -> {
-                int i=1;
+                int i = 1;
                 try {
-                    int j=0;
-                    for (QueryDocumentSnapshot q : value){
+                    int j = 0;
+                    for (QueryDocumentSnapshot ignored : value) {
                         j++;
                     }
                     Log.d("story_count", String.valueOf(j));
                     for (QueryDocumentSnapshot queryDocumentSnapshot : value) {
                         Date date = new Date();
                         long timeCreated = Long.parseLong(queryDocumentSnapshot.get("timeUpload").toString());
-                        long currentTime = date.getTime()/1000;
-                        long difference = currentTime-timeCreated;
-                        if(difference>86400){
+                        long currentTime = date.getTime() / 1000;
+                        long difference = currentTime - timeCreated;
+                        if (difference > 86400) {
                             Thread thread = new Thread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -204,7 +203,7 @@ public class StoryFragment extends Fragment {
                                 }
                             });
                         }
-                        if (i == j-1) {
+                        if (i == j - 1) {
                             String name1 = Objects.requireNonNull(queryDocumentSnapshot.get("name")).toString();
                             String uid = Objects.requireNonNull(queryDocumentSnapshot.get("uid")).toString();
                             String postUri = Objects.requireNonNull(queryDocumentSnapshot.get("postUri")).toString();
@@ -212,14 +211,15 @@ public class StoryFragment extends Fragment {
                             String timeUpload = Objects.requireNonNull(queryDocumentSnapshot.get("timeUpload").toString());
                             Date date1 = new Date();
 
-                            if (difference<=3600){
-                                Log.i("StoryTime",String.valueOf(difference));
-                                int minutes = (int)difference/60;
-                                String time = minutes +" minutes ago";
+
+                            if (difference <= 3600) {
+                                Log.i("StoryTime", String.valueOf(difference));
+                                int minutes = (int) difference / 60;
+                                String time = minutes + " minutes ago";
                                 //loadLastStory(queryDocumentSnapshot,name,imageView);
                                 textView_creation.setText(time);
 
-                            } else if(difference<=86400){
+                            } else if (difference <= 86400) {
                                 Calendar c = Calendar.getInstance();
                                 c.setTimeInMillis(timeCreated);
                                 Date d = c.getTime();
@@ -237,32 +237,33 @@ public class StoryFragment extends Fragment {
                                     .apply(new RequestOptions().error(R.drawable.glide_placeholder))
                                     .into(imageView);
                         }
-                            i++;
+                        i++;
 //                        if (i==1){
 //                            break;
 //                        }
                     }
-                } catch(NullPointerException e){
+                } catch (NullPointerException e) {
                     e.printStackTrace();
                 }
             });
         }
     }
-    private void deleteStory(QueryDocumentSnapshot queryDocumentSnapshot){
-        try{
+
+    private void deleteStory(QueryDocumentSnapshot queryDocumentSnapshot) {
+        try {
             DocumentReference reference = queryDocumentSnapshot.getReference();
             reference.delete().addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     Toast.makeText(getContext(), task.getResult().toString(), Toast.LENGTH_SHORT).show();
                 }
             });
-        }catch(NullPointerException e){
+        } catch (NullPointerException e) {
             e.printStackTrace();
         }
     }
 
     private void loadLastStory(QueryDocumentSnapshot queryDocumentSnapshot, TextView Uname,
-                               CircleImageView UimageView){
+                               CircleImageView UimageView) {
         String name1 = Objects.requireNonNull(queryDocumentSnapshot.get("name")).toString();
         String uid = Objects.requireNonNull(queryDocumentSnapshot.get("uid")).toString();
         String postUri = Objects.requireNonNull(queryDocumentSnapshot.get("postUri")).toString();
@@ -276,14 +277,15 @@ public class StoryFragment extends Fragment {
                 .apply(new RequestOptions().error(R.drawable.glide_placeholder))
                 .into(UimageView);
     }
-    private void addStory(String posturl,String type){
+
+    private void addStory(String posturl, String type) {
         try {
-            FirebaseFirestore firestore  =FirebaseFirestore.getInstance();
+            FirebaseFirestore firestore = FirebaseFirestore.getInstance();
             Date date = new Date();
             long millis = date.getTime();
-            long seconds = millis/1000;
+            long seconds = millis / 1000;
 
-            long timeE  = seconds+86400;
+            long timeE = seconds + 86400;
             String timeCreated = String.valueOf(seconds);
             String timeEnd = String.valueOf(timeE);
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -292,12 +294,12 @@ public class StoryFragment extends Fragment {
 
             firestore.collection("story").document(user.getUid()).collection(user.getUid())
                     .document(String.valueOf(seconds)).set(storyMember).addOnCompleteListener(task -> {
-                        if (task.isSuccessful()){
-                            Toast.makeText(getContext(), "Story uploaded successfully", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-        }catch (DatabaseException | NullPointerException e){
-            if(e instanceof DatabaseException){
+                if (task.isSuccessful()) {
+                    Toast.makeText(getContext(), "Story uploaded successfully", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } catch (DatabaseException | NullPointerException e) {
+            if (e instanceof DatabaseException) {
                 e.getMessage();
             }
         }
@@ -311,15 +313,15 @@ public class StoryFragment extends Fragment {
         for (User user : mUsers1) {
             CollectionReference reference = firestore.collection("story").document(user.getId())
                     .collection(user.getId());
-            Log.d("userid",user.getId());
-            Query query = reference.whereEqualTo("uid",user.getId());
+            Log.d("userid", user.getId());
+            Query query = reference.whereEqualTo("uid", user.getId());
             query.addSnapshotListener((value, error) -> {
 
-                int i=1;
+                int i = 1;
 //                assert value != null;
                 try {
-                    int j=0;
-                    for (QueryDocumentSnapshot q : value){
+                    int j = 0;
+                    for (QueryDocumentSnapshot q : value) {
                         j++;
                     }
                     for (QueryDocumentSnapshot queryDocumentSnapshot : value) {
@@ -338,23 +340,23 @@ public class StoryFragment extends Fragment {
 //                            break;
 //                        }
                     }
-                } catch(NullPointerException e){
+                } catch (NullPointerException e) {
                     e.printStackTrace();
                 }
 
-                storyAdapter = new StoryAdapter(getContext(),memberList,value);
+                storyAdapter = new StoryAdapter(getContext(), memberList, value);
                 recyclerView_story.setAdapter(storyAdapter);
             });
         }
     }
 
-    private void searchUsers(String toString){
+    private void searchUsers(String toString) {
         List<Contacts> refCont;
         refCont = new ArrayList<>();
         FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
         CollectionReference searchRef = firebaseFirestore.collection("users");
-        Query query = searchRef.whereGreaterThanOrEqualTo("phoneNumber",toString)
-                .whereLessThanOrEqualTo("phoneNumber",toString+'\uf8ff');
+        Query query = searchRef.whereGreaterThanOrEqualTo("phoneNumber", toString)
+                .whereLessThanOrEqualTo("phoneNumber", toString + '\uf8ff');
         query.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 Log.d("Sucess12", "success");
@@ -365,7 +367,7 @@ public class StoryFragment extends Fragment {
                         String phone_number = Objects.requireNonNull(Objects.requireNonNull(documentSnapshot.get("phoneNumber")).toString());
                         Log.d("ID_DD", id);
                         String ImageUrl;
-                        if (Objects.requireNonNull(documentSnapshot.get("ImageURL")).toString() == null) {
+                        if (Objects.requireNonNull(documentSnapshot.get("ImageURL")).toString().equals("null")) {
                             ImageUrl = null;
                         } else {
                             ImageUrl = Objects.requireNonNull(Objects.requireNonNull(documentSnapshot.get("ImageURL")).toString());
@@ -376,13 +378,14 @@ public class StoryFragment extends Fragment {
                         Log.d("successId", String.valueOf(refCont.size()));
                     }
                     Log.d("successId3", String.valueOf(refCont.size()));
-                } catch(NullPointerException e){
+                } catch (NullPointerException e) {
                     e.printStackTrace();
                 }
             }
         });
     }
-//    private void showStory(@NonNull List<User> mUsers){
+
+    //    private void showStory(@NonNull List<User> mUsers){
 //        memberList = new ArrayList<>();
 //        reference = FirebaseDatabase.getInstance().getReference();
 //        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
@@ -419,31 +422,31 @@ public class StoryFragment extends Fragment {
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    mUsers.clear();
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                        User user = snapshot.getValue(User.class);
-                        for (String id : usersList){
-                            assert user != null;
-                            if(user.getId().equals(id)){
-                                if(mUsers.size()!=0){
-                                    int flag=0;
-                                    for(User u : mUsers) {
-                                        if (user.getId().equals(u.getId())) {
-                                            flag = 1;
-                                            break;
-                                        }
+                mUsers.clear();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    User user = snapshot.getValue(User.class);
+                    for (String id : usersList) {
+                        assert user != null;
+                        if (user.getId().equals(id)) {
+                            if (mUsers.size() != 0) {
+                                int flag = 0;
+                                for (User u : mUsers) {
+                                    if (user.getId().equals(u.getId())) {
+                                        flag = 1;
+                                        break;
                                     }
-                                    if(flag==0)
-                                        mUsers.add(user);
-                                }else{
-
-                                    mUsers.add(user);
                                 }
+                                if (flag == 0)
+                                    mUsers.add(user);
+                            } else {
+
+                                mUsers.add(user);
                             }
                         }
-
                     }
-                    //here
+
+                }
+                //here
                 testStory(mUsers);
             }
 
@@ -456,7 +459,7 @@ public class StoryFragment extends Fragment {
 
 }
 
-class DeleteStoryService extends Service{
+class DeleteStoryService extends Service {
 
 
     @Override

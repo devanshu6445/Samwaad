@@ -14,6 +14,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -88,6 +89,8 @@ public class MessageActivity extends AppCompatActivity {
     private static  final int REQUEST_IMAGE = 2;
 
     ValueEventListener seenListener,SeenListener1;
+    String filename = null;
+    String audiopath=null;
 
 
     @SuppressLint({"ClickableViewAccessibility", "ObsoleteSdkInt"})
@@ -124,58 +127,49 @@ public class MessageActivity extends AppCompatActivity {
         status_dynamic = findViewById(R.id.status_dynamic);
         btn_record = findViewById(R.id.btn_record);
         if (ContextCompat.checkSelfPermission(MessageActivity.this,Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED){
-            String file_name = "Audio_"+System.currentTimeMillis();
-            String audio_path = "/storage/emulated/0/Samwaad/Audio/" + file_name + ".mp4";
-            recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-            recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-            recorder.setOutputFile(audio_path);
+
             try {
-                recorder.prepare();
 
-                btn_record.setOnTouchListener((view, motionEvent) -> {
+                btn_record.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+                        if (ContextCompat.checkSelfPermission(MessageActivity.this,Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED){
+                            try{
+                                switch (event.getAction()){
+                                    case MotionEvent.ACTION_DOWN:
+                                        String file_name = "Audio_"+System.currentTimeMillis();
+                                        String audio_path = "/storage/emulated/0/Samwaad/Audio/" + file_name + ".mp4";
+                                        filename = file_name;
+                                        audiopath = audio_path;
+                                        recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                                        recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                                        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+                                        recorder.setOutputFile(audio_path);
+                                        recorder.prepare();
+                                        recorder.start();
 
-                    switch (motionEvent.getAction()) {
+                                        return false;
+                                    case MotionEvent.ACTION_UP:
+                                        recorder.stop();
+                                        Uri uri = Uri.fromFile(new File(audiopath));
+                                        StorageReference reference = FirebaseStorage.getInstance().getReference().child(fuser.getUid())
+                                                .child(filename);
+                                        putAudio(reference,uri);
+                                        return false;
+                                }
 
-                        case MotionEvent.ACTION_DOWN:
-                            if (ContextCompat.checkSelfPermission(MessageActivity.this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-                                Toast.makeText(this, "Hold to record audio", Toast.LENGTH_SHORT).show();
-                                recorder.start();
-                            } else {
-                                ActivityCompat.requestPermissions(MessageActivity.this, new String[]{Manifest.permission.RECORD_AUDIO}, 5);
+                            } catch (IOException e) {
+                                Log.e("ErrorIO", "IO Error Occurred", e);
+                                Toast.makeText(MessageActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                            } catch(IllegalStateException e){
+                                Toast.makeText(MessageActivity.this, "IllegalStateException "+e.getMessage(), Toast.LENGTH_SHORT).show();
                             }
-
-//            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-//            intent.addCategory(Intent.CATEGORY_OPENABLE);
-//            intent.setType("*/*");
-//            startActivityForResult(intent,REQUEST_AUDIO);
-                            return false;
-                        case MotionEvent.ACTION_UP:
-                            recorder.stop();
-                            recorder.reset();
-                            recorder.release();
-                            Uri uri = Uri.fromFile(new File(audio_path));
-                            StorageReference reference = FirebaseStorage.getInstance().getReference().child(fuser.getUid())
-                                    .child(file_name);
-                            putAudio(reference,uri);
-//                            MediaPlayer mediaPlayer = new MediaPlayer();
-//                            mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
-//                                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-//                                    .setUsage(AudioAttributes.USAGE_MEDIA)
-//                                    .build());
-//                            try {
-//                                mediaPlayer.setDataSource(getApplicationContext(), uri);
-//                                mediaPlayer.prepare();
-//                                mediaPlayer.start();
-//                            } catch (IOException e) {
-//                                Log.e("MediaPlayIO", "Error IO", e);
-//                            }
-                            return false;
+                        } else{
+                            ActivityCompat.requestPermissions(MessageActivity.this,new String[]{Manifest.permission.RECORD_AUDIO},5);
+                        }
+                        return false;
                     }
-                    return false;
                 });
-            } catch (IOException e) {
-                Log.e("ErrorIO", "IO Error Occurred", e);
             } catch (IllegalStateException illegalStateException) {
                 Log.e("IllegalState", "ErrorState", illegalStateException);
             }

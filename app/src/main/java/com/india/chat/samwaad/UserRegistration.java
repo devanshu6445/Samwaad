@@ -178,9 +178,16 @@ public class UserRegistration extends AppCompatActivity implements AdapterView.O
                                             task1 -> {
                                                 if (task1.isSuccessful()) {
                                                     imageURL = task1.getResult().toString();
-                                                    Log.d("ImageUrrl",imageURL, task1.getException());
+                                                    Log.d("ImageUrrl",imageURL);
                                                     UserRegThread userRegThread = new UserRegThread(name,imageURL,number);
                                                     userRegThread.start();
+                                                    SharedPreferences preferences = getSharedPreferences("setting",MODE_PRIVATE);
+                                                    SharedPreferences.Editor editor = preferences.edit();
+                                                    editor.putString("uid",user.getUid());
+                                                    editor.putString("image_url",imageURL);
+                                                    editor.putString("name",name);
+                                                    editor.putString("number",number);
+                                                    editor.apply();
                                                     Intent intent = new Intent(UserRegistration.this, MainActivity.class);
                                                     startActivity(intent);
                                                     ///Toast.makeText(UserRegistration.this, "Registration done correctly", Toast.LENGTH_LONG).show();
@@ -219,13 +226,7 @@ public class UserRegistration extends AppCompatActivity implements AdapterView.O
             }
 
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-            SharedPreferences preferences = getSharedPreferences("setting",MODE_PRIVATE);
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("uid",user.getUid());
-            editor.putString("image_url",imageURL);
-            editor.putString("name",name);
-            editor.putString("number",number);
-            editor.apply();
+
             FirebaseFirestore user_db = FirebaseFirestore.getInstance();
             try{
                 DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("users");

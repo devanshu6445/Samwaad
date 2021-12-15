@@ -4,15 +4,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.MediaController;
 import android.widget.PopupMenu;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,7 +27,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.india.chat.samwaad.Model.Chat;
 import com.india.chat.samwaad.R;
@@ -128,9 +129,21 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         public TextView txt_seen_receive;
         public TextView txt_seen_msg_receive;
         public View roundView_receive;
+        public View mediaReceive;
+        public Button startReceive;
+        public Button pauseReceive;
+        public Button audioDownloadReceive;
+        public ProgressBar audioDownloadingReceive;
+        public View audioDownloadingSection;
 
         public ViewHolderReceive(View itemView){
             super(itemView);
+            mediaReceive = itemView.findViewById(R.id.media);
+            startReceive = mediaReceive.findViewById(R.id.AudioResume);
+            pauseReceive = mediaReceive.findViewById(R.id.AudioPause);
+            audioDownloadReceive = mediaReceive.findViewById(R.id.AudioDownload);
+            audioDownloadingSection = mediaReceive.findViewById(R.id.AudioDownloadSection);
+            audioDownloadingReceive = mediaReceive.findViewById(R.id.AudioDownloading);
             txt_seen_msg_receive = itemView.findViewById(R.id.text_seen_msg_receive);
             show_messages_receive = itemView.findViewById(R.id.show_message_receive);
             txt_seen_receive = itemView.findViewById(R.id.text_seen_receive);
@@ -288,6 +301,8 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 e.printStackTrace();
             }
         } else {
+
+
             viewHolderSend.txt_seen_send.setVisibility(View.GONE);
             viewHolderSend.txt_seen_msg_send.setVisibility(View.GONE);
         }
@@ -295,9 +310,8 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
     private void receiveView(Chat chat,RecyclerView.ViewHolder holder,int position){
         ViewHolderReceive viewHolderReceive = (ViewHolderReceive) holder;
-        if(chat.getMessage()!=null){
-
-
+        if(chat.getMessage()!=null) {
+            Log.d("MessageChat",chat.getMessage());
             viewHolderReceive.show_messages_receive.setText(chat.getMessage());
             viewHolderReceive.MessageImageView_receive.setVisibility(View.GONE);
             viewHolderReceive.roundView_receive.setVisibility(View.GONE);
@@ -338,7 +352,10 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 });
                 popupMenu.show();
             });
-        } else if (chat.getImageUrl()!=null){
+        }
+
+        else if (chat.getImageUrl()!=null){
+            Log.d("ImageChat",chat.getImageUrl());
             loadImage(viewHolderReceive.MessageImageView_receive, chat.getImageUrl(), chat.getReceiver());
 //            String imageurl = chat.getImageUrl();
 //            if (imageurl.startsWith("gs://")){
@@ -366,6 +383,32 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 //                        .into(viewHolderReceive.MessageImageView_receive);
 //            }
             viewHolderReceive.show_messages_receive.setVisibility(View.GONE);
+        }
+
+        else if(chat.getAudioUrl()!=null) {
+            Log.d("AudioUrl",chat.getAudioUrl());
+
+            viewHolderReceive.MessageImageView_receive.setVisibility(View.GONE);
+            viewHolderReceive.roundView_receive.setVisibility(View.GONE);
+            viewHolderReceive.show_messages_receive.setVisibility(View.GONE);
+
+            String url = chat.getAudioUrl();
+            if (audioExist(url)) {
+                viewHolderReceive.audioDownloadingSection.setVisibility(View.GONE);
+                viewHolderReceive.audioDownloadReceive.setVisibility(View.GONE);
+                viewHolderReceive.audioDownloadingReceive.setVisibility(View.GONE);
+                audioSend(viewHolderReceive.mediaReceive, viewHolderReceive.startReceive, viewHolderReceive.pauseReceive, chat.getAudioUrl());
+            }
+            else {
+
+                viewHolderReceive.audioDownloadReceive.setOnClickListener(v -> {
+
+                    audioDownload(url,viewHolderReceive.audioDownloadingReceive);
+                });
+
+            }
+
+
         }
         if (position == mChat.size()-1){
             try {
@@ -398,13 +441,49 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             viewHolderReceive.txt_seen_msg_receive.setVisibility(View.GONE);
         }
     }
+    private Boolean audioExist(String url){
+        StorageReference reference = FirebaseStorage.getInstance().getReferenceFromUrl(url);
+        File checkFile = new File("/storage/emulated/0/Samwaad/Audio/" + reference.getName() + ".mp4");
+        return  checkFile.exists();
+    }
+    private void audioDownload(String url,ProgressBar downloadPRogress) {
+
+        StorageReference reference = FirebaseStorage.getInstance().getReferenceFromUrl(url);
+        try{
+            File folder = new File("/storage/emulated/0/Samwaad/Audio/");
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            String path = "/storage/emulated/0/Samwaad/Audio/" + reference.getName() + ".mp4";
+            File audioFile = new File(path);
+            audioFile.createNewFile();
+            reference.getFile(audioFile)
+                    .addOnProgressListener(new OnProgressListener<FileDownloadTask.TaskSnapshot>() {
+                        @Override
+                        public void onProgress(@NonNull FileDownloadTask.TaskSnapshot taskSnapshot) {
+                            //Todo: finish progress coding
+                        }
+                    })
+
+                    .addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    Log.d("FIleDownloadSuccess", task.getResult().toString());
+                } else {
+                    Log.d("AudioDownloadError", task.getResult().toString(), task.getException());
+                }
+            });
+        }catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     private void audioSend(View view, Button start,Button pause,String url){
 
         StorageReference reference = FirebaseStorage.getInstance().getReferenceFromUrl(url);
         String path = "/storage/emulated/0/Samwaad/Audio/" + reference.getName() +".mp4";
         android.net.Uri uri = android.net.Uri.fromFile(new File(path));
-        Log.d("FilePathC",new File(path).getAbsolutePath());
+
         Log.d("UriPath",uri.toString());
         MediaPlayer mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()

@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="300dp"
     android:padding="3dp"
     android:layout_marginStart="10dp"
     android:layout_height="wrap_content">
+
+    <include
+        layout="@layout/audio_controller_message"
+        android:id="@+id/media"/>
+
+
+
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/profile_image"
         android:layout_width="wrap_content"

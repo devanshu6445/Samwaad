@@ -55,7 +55,7 @@ public class UserProfile extends Fragment {
         String image_url = preferences.getString("image_url","image_url");
         String name = preferences.getString("name","0");
         Glide.with(imageView.getContext())
-                .load(image_url)
+               .load(image_url)
                 .apply(new RequestOptions().error(R.drawable.ic_person))
                 .into(imageView);
         if(!name.equals("0")){
