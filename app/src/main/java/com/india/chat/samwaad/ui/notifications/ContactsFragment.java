@@ -1,6 +1,7 @@
 package com.india.chat.samwaad.ui.notifications;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -92,8 +93,8 @@ public class ContactsFragment extends Fragment {
             Cursor phones = requireContext().getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,null,null,null,null);
             contacts = new ArrayList<>();
             while (phones.moveToNext()){
-                String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-                String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                @SuppressLint("Range") String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                @SuppressLint("Range") String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
                 Contacts contacts1 = new Contacts(name,phoneNumber);
                 contacts.add(contacts1);
             }
@@ -125,10 +126,10 @@ public class ContactsFragment extends Fragment {
                             String phone_number = Objects.requireNonNull(Objects.requireNonNull(documentSnapshot.get("phoneNumber")).toString());
 
                             String ImageUrl;
-                            if (documentSnapshot.get("ImageURL").toString()==null){
+                            if ((Objects.requireNonNull(documentSnapshot.get("imageURL")).toString()).equals("")){
                                 ImageUrl = null;
                             } else {
-                                ImageUrl = Objects.requireNonNull(Objects.requireNonNull(documentSnapshot.get("ImageURL")).toString());
+                                ImageUrl = Objects.requireNonNull(Objects.requireNonNull(documentSnapshot.get("imageURL")).toString());
 
                             }
                             Contacts contacts1 = new Contacts(name, phone_number,ImageUrl,id);

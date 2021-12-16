@@ -30,15 +30,17 @@
                 android:id="@+id/AudioPause"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
+                android:background="@drawable/ic_baseline_pause_24"
                 android:visibility="gone"/>
             <Button
                 android:id="@+id/AudioResume"
                 android:layout_width="45dp"
-                android:layout_height="45dp" />
+                android:layout_height="45dp"
+                android:background="@drawable/ic_baseline_play_arrow_24"/>
             </RelativeLayout>
 
             <SeekBar
-                android:layout_width="150dp"
+                android:layout_width="170dp"
                 android:layout_height="20dp"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="10dp"
@@ -55,6 +57,7 @@
                 <Button
                     android:id="@+id/AudioDownload"
                     android:layout_width="45dp"
+                    android:background="@drawable/ic_baseline_arrow_circle_down_24"
                     android:layout_height="45dp"/>
 
                 <ProgressBar

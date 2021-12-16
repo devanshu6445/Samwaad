@@ -186,8 +186,10 @@ public class HomeFragment extends Fragment {
                         mUsers.clear();
                         for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                             UserFirestore user = snapshot.getValue(UserFirestore.class);
-                            for (String id : usersList){
+                            for (String id:usersList){
                                 assert user != null;
+                                String userID = user.getId();
+                                //If error is coming here then a user must have been registered incorrectly
                                 if(user.getId().equals(id)){
                                     if(mUsers.size()!=0){
                                         int flag=0;

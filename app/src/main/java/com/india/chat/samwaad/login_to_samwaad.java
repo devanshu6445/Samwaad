@@ -18,7 +18,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.google.android.gms.tasks.OnCanceledListener;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -105,7 +107,6 @@ public class login_to_samwaad extends AppCompatActivity {
                                             .collection("users")
                                             .document(user1.getUid());
                                     try {
-
                                         reference.get()
                                                 .addOnCompleteListener(task1 -> {
                                                     if (task1.isSuccessful()) {
@@ -115,7 +116,7 @@ public class login_to_samwaad extends AppCompatActivity {
                                                             assert snapshot != null;
                                                             String name = Objects.requireNonNull(snapshot.get("name")).toString();
                                                             Log.d("LoginDetailName",name);
-
+                                                            //SharedPreferences is not updating because imageURL is generating NullPointerException
                                                             String imageURL = Objects.requireNonNull(snapshot.get("imageURL")).toString();
                                                             //String number = Objects.requireNonNull(snapshot.get("phoneNumber")).toString();
                                                             Toast.makeText(login_to_samwaad.this, name, Toast.LENGTH_SHORT).show();
@@ -132,7 +133,14 @@ public class login_to_samwaad extends AppCompatActivity {
                                                     } else{
                                                         Log.e("LoginDetailsError",task.getResult().toString(),task.getException());
                                                     }
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    Log.d("ReadFailure",e.getMessage(),e);
+                                                })
+                                                .addOnCanceledListener(() -> {
+                                                    Log.d("ReadCancel","Canceled");
                                                 });
+
                                     } catch (NullPointerException e) {
                                         e.printStackTrace();
                                     }
