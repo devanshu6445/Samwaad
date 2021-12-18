@@ -116,7 +116,7 @@ public class login_to_samwaad extends AppCompatActivity {
                                                             assert snapshot != null;
                                                             String name = Objects.requireNonNull(snapshot.get("name")).toString();
                                                             Log.d("LoginDetailName",name);
-                                                            //SharedPreferences is not updating because imageURL is generating NullPointerException
+                                                            //If SharedPreferences is not updating because imageURL is generating NullPointerException
                                                             String imageURL = Objects.requireNonNull(snapshot.get("imageURL")).toString();
                                                             //String number = Objects.requireNonNull(snapshot.get("phoneNumber")).toString();
                                                             Toast.makeText(login_to_samwaad.this, name, Toast.LENGTH_SHORT).show();

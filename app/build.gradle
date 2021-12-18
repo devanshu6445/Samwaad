@@ -63,6 +63,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     implementation 'com.github.bxute:StoryView:v1.1'
     implementation 'com.github.shts:StoriesProgressView:3.0.0'
+    implementation 'com.ramijemli.percentagechartview:percentagechartview:0.3.0'
     implementation "androidx.core:core-ktx:+"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"

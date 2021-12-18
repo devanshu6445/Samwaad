@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="300dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/parent_audio"
     android:layout_height="75dp"
     android:layout_marginStart="5dp">
@@ -32,11 +33,12 @@
                 android:layout_height="45dp"
                 android:background="@drawable/ic_baseline_pause_24"
                 android:visibility="gone"/>
-            <Button
-                android:id="@+id/AudioResume"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
-                android:background="@drawable/ic_baseline_play_arrow_24"/>
+
+                <Button
+                    android:id="@+id/AudioResume"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:background="@drawable/ic_baseline_play_arrow_24" />
             </RelativeLayout>
 
             <SeekBar
@@ -60,8 +62,10 @@
                     android:background="@drawable/ic_baseline_arrow_circle_down_24"
                     android:layout_height="45dp"/>
 
-                <ProgressBar
+                <com.ramijemli.percentagechartview.PercentageChartView
                     android:id="@+id/AudioDownloading"
+                    app:pcv_mode="ring"
+                    app:pcv_orientation="clockwise"
                     android:layout_width="45dp"
                     android:layout_height="45dp" />
             </RelativeLayout>
