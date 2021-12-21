@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,6 +52,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private List<Chat> mChat;
 
     private Handler handler = new Handler();
+    private Handler mHandler = new Handler();
 
     FirebaseUser fuser;
 
@@ -110,6 +112,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         public PercentageChartView audioDownloadingSend;
         public View audioDownloadingSection;
         public View audioSection;
+        public SeekBar seekToSend;
 
         public ViewHolderSend(View itemView) {
             super(itemView);
@@ -120,6 +123,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             audioDownloadingSection = media.findViewById(R.id.AudioDownloadSection);
             audioDownloadingSend = media.findViewById(R.id.AudioDownloading);
             audioSection = media.findViewById(R.id.Audio);
+            seekToSend = media.findViewById(R.id.seekTo);
             txt_seen_msg_send = itemView.findViewById(R.id.text_seen_msg_send);
             show_messages_send = itemView.findViewById(R.id.show_message_send);
             txt_seen_send = itemView.findViewById(R.id.text_seen_send);
@@ -142,6 +146,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         public PercentageChartView audioDownloadingReceive;
         public View audioDownloadingSection;
         public View audioSection;
+        public SeekBar seekToReceive;
 
         public ViewHolderReceive(View itemView){
             super(itemView);
@@ -152,6 +157,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             audioDownloadingSection = mediaReceive.findViewById(R.id.AudioDownloadSection);
             audioDownloadingReceive = mediaReceive.findViewById(R.id.AudioDownloading);
             audioSection = mediaReceive.findViewById(R.id.Audio);
+            seekToReceive = mediaReceive.findViewById(R.id.seekTo);
             txt_seen_msg_receive = itemView.findViewById(R.id.text_seen_msg_receive);
             show_messages_receive = itemView.findViewById(R.id.show_message_receive);
             txt_seen_receive = itemView.findViewById(R.id.text_seen_receive);
@@ -284,10 +290,14 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             String url = chat.getAudioUrl();
             if(audioExist(url)) {
                 viewHolderSend.audioDownloadingSection.setVisibility(View.GONE);
-                audioPlay(viewHolderSend,viewHolderSend.media, viewHolderSend.start, viewHolderSend.pause, chat.getAudioUrl());
+                viewHolderSend.start.setOnClickListener(view->{
+                    audioPlay(viewHolderSend,viewHolderSend.media, viewHolderSend.start, viewHolderSend.pause, chat.getAudioUrl());
+                });
             }else{
                 viewHolderSend.audioSection.setVisibility(View.GONE);
-                audioDownload(url,viewHolderSend);
+                viewHolderSend.audioDownloadSend.setOnClickListener(v->{
+                    audioDownload(url,viewHolderSend);
+                });
             }
             viewHolderSend.MessageImageView_send.setVisibility(View.GONE);
             viewHolderSend.roundView_send.setVisibility(View.GONE);
@@ -389,7 +399,10 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             String url = chat.getAudioUrl();
             if (audioExist(url)) {
                 viewHolderReceive.audioDownloadingSection.setVisibility(View.GONE);
-                audioPlay(viewHolderReceive,viewHolderReceive.mediaReceive, viewHolderReceive.startReceive, viewHolderReceive.pauseReceive, chat.getAudioUrl());
+                viewHolderReceive.startReceive.setOnClickListener(view->{
+                    audioPlay(viewHolderReceive,viewHolderReceive.mediaReceive, viewHolderReceive.startReceive, viewHolderReceive.pauseReceive, chat.getAudioUrl());
+
+                });
             }
             else {
 
@@ -591,15 +604,57 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
                     //according to viewHolder
                     if(viewHolderSend!=null){
+                        viewHolderSend.seekToSend.setMax(mediaPlayer.getDuration());
                         viewHolderSend.start.setOnClickListener(view -> {
                             mediaPlayer.start();
                             viewHolderSend.start.setVisibility(View.GONE);
                             viewHolderSend.pause.setVisibility(View.VISIBLE);
+
+                        });
+
+                            /*viewHolderSend.seekToSend.postDelayed(() -> {
+                                viewHolderSend.seekToSend.setProgress(mediaPlayer.getCurrentPosition());
+                            }, 1000);*/
+
+                        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                            @Override
+                            public void onCompletion(MediaPlayer mp) {
+                                viewHolderSend.seekToSend.setProgress(0);
+                                viewHolderSend.pause.setVisibility(View.GONE);
+                                viewHolderSend.start.setVisibility(View.VISIBLE);
+                            }
                         });
                         viewHolderSend.pause.setOnClickListener(view -> {
+
+//                            viewHolderSend.seekToSend.setProgress(mediaPlayer.getDuration()-mediaPlayer.getCurrentPosition());
                             mediaPlayer.pause();
                             viewHolderSend.pause.setVisibility(View.GONE);
                             viewHolderSend.start.setVisibility(View.VISIBLE);
+                        });
+
+                        viewHolderSend.seekToSend.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                            @Override
+                            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                                mediaPlayer.seekTo(progress);
+                            }
+
+                            @Override
+                            public void onStartTrackingTouch(SeekBar seekBar) {
+
+                            }
+
+                            @Override
+                            public void onStopTrackingTouch(SeekBar seekBar) {
+
+                            }
+                        });
+                        mediaPlayer.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
+                            @Override
+                            public void onSeekComplete(MediaPlayer mp) {
+                                //viewHolderSend.seekToSend.setProgress(0);
+                                //viewHolderSend.pause.setVisibility(View.GONE);
+                                //viewHolderSend.start.setVisibility(View.VISIBLE);
+                            }
                         });
                     }else{
                         viewHolderReceive.startReceive.setOnClickListener(view -> {
@@ -607,13 +662,57 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                             viewHolderReceive.startReceive.setVisibility(View.GONE);
                             viewHolderReceive.pauseReceive.setVisibility(View.VISIBLE);
                         });
+                        /*viewHolderReceive.seekToReceive.postDelayed(() -> {
+                            viewHolderReceive.seekToReceive.setProgress(mediaPlayer.getCurrentPosition());
+                        }, 1000);*/
+                        //viewHolderReceive.seekToReceive.setProgress(mediaPlayer.getCurrentPosition());
                         viewHolderReceive.pauseReceive.setOnClickListener(view -> {
                             mediaPlayer.pause();
                             viewHolderReceive.pauseReceive.setVisibility(View.GONE);
                             viewHolderReceive.startReceive.setVisibility(View.VISIBLE);
                         });
+                        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                            @Override
+                            public void onCompletion(MediaPlayer mp) {
+                                viewHolderReceive.pauseReceive.setVisibility(View.GONE);
+                                viewHolderReceive.startReceive.setVisibility(View.VISIBLE);
+                            }
+                        });
+
+                        viewHolderReceive.seekToReceive.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                            @Override
+                            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+                                mediaPlayer.seekTo(progress);
+                            }
+
+                            @Override
+                            public void onStartTrackingTouch(SeekBar seekBar) {
+                            }
+
+                            @Override
+                            public void onStopTrackingTouch(SeekBar seekBar) {
+
+                            }
+                        });
+                        mediaPlayer.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
+                            @Override
+                            public void onSeekComplete(MediaPlayer mp) {
+                                viewHolderReceive.pauseReceive.setVisibility(View.GONE);
+                                viewHolderReceive.startReceive.setVisibility(View.VISIBLE);
+                            }
+                        });
                     }
                 });
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                            viewHolderSend.seekToSend.setProgress(mediaPlayer.getCurrentPosition());
+                            mHandler.postDelayed(this,1);
+                    }
+                },1);
+
+
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -621,6 +720,19 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             }
         }
     }
+
+    private void updateProgressBar(MediaPlayer mediaPlayer,ViewHolderSend viewHolderSend){
+        Runnable r = new Runnable(){
+            @Override
+            public void run() {
+                viewHolderSend.seekToSend.setProgress(mediaPlayer.getCurrentPosition());
+                mHandler.postDelayed(this,1000);
+            }
+        };
+        mHandler.postDelayed(r,1000);
+    }
+
+
     private void loadImage(ImageView imgView,String imageUrl,String folder){
 
         //loading image into ImageView after downloading the image if image is not already on device
